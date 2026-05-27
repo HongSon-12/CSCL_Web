@@ -1,0 +1,443 @@
+﻿row,table,measure_name,data_type,expression,format,hidden,is_multiline,needs_review
+18,callcenterdata,A1,Integer,SUM(callcenterdata[totalcalls]),,False,False,
+19,callcenterdata,A10,Integer,SUM(handlebyarea[receivedbysatellite]),,False,False,
+20,callcenterdata,A11,Integer,SUM(handlebyarea[transfertosatellite] ),,False,False,
+21,callcenterdata,A12,Integer,SUM(handlebyarea[nolongerneededcalls]),,False,False,
+22,callcenterdata,A13,Integer,SUM(handlebyarea[othertransfer]),,False,False,
+23,callcenterdata,A15,Number,AVERAGE(callcenterdata[averagecallsperday] ),,False,False,
+24,callcenterdata,A2,Integer,SUM(callcenterdata[callsreceived]),,False,False,
+25,callcenterdata,A3,Integer,SUM(callcenterdata[callswithcontent]),,False,False,
+26,callcenterdata,A5,Integer,SUM(callcenterdata[callswithemergencysignstotal]),,False,False,
+27,callcenterdata,A6,Integer,SUM(callcenterdata[callswithemergencysignstotal]),,False,False,
+28,callcenterdata,A7,Integer,"CALCULATE(
+    SUM('callcenterdata_stationtransfer'[transferCount]),
+    'callcenterdata_stationtransfer'[station_id] = 1
+) False",,,True,multiline_export
+33,callcenterdata,A8,Integer,SUM(outofhospitalreport[hospitaltransfer]),,False,False,
+34,callcenterdata,A9,Integer,SUM(handlebyarea[transfertohospitalpatient]),,False,False,
+35,callcenterdata,Cấp cứu/tiếp nhận,Number,[A5]/[A2] ,,False,False,unsafe_division_check
+36,callcenterdata,CS 1,Integer,[A1],,False,False,
+37,callcenterdata,CS 10,Number,[A5]/[A5] ,,False,False,unsafe_division_check
+38,callcenterdata,CS 11_BB,Number,"CALCULATE(
+    AVERAGE(KCCNBV[TgngheDT]),
+    REMOVEFILTERS(ListTVT[TenTram])
+) False",,,True,multiline_export;filter_context_logic
+43,callcenterdata,CS 11G,Number,AVERAGE(callcenterdata[averagecallsperday]),,False,False,
+44,callcenterdata,CS 11P,Number,AVERAGE(KCCNBV[Tgtaophieu]),,False,False,
+45,callcenterdata,CS 12,Number,AVERAGE(KCCNBV[TGTiepnhanCCTB]),,False,False,
+46,callcenterdata,CS 13,Number,"(CALCULATE(
+    SUM(KCCNBV[TgngheDT])
+)/2)/6 False",,,True,multiline_export;unsafe_division_check
+49,callcenterdata,CS 2,Number,[A2]/[A1],,False,False,unsafe_division_check
+50,callcenterdata,CS 3,Number,[A3]/[A2],,False,False,unsafe_division_check
+51,callcenterdata,CS 4,Number,[A5]/[A3] ,,False,False,unsafe_division_check
+52,callcenterdata,CS 5,Number,[A7]/[A6],,False,False,unsafe_division_check
+53,callcenterdata,CS 6,Number,[A8]/[A9],,False,False,unsafe_division_check
+54,callcenterdata,CS 7,Number,[A10]/[A11],,False,False,unsafe_division_check
+55,callcenterdata,CS 8,Number,[A12]/[A6],,False,False,unsafe_division_check
+56,callcenterdata,CS 9,Number,[A13]/[A5],,False,False,unsafe_division_check
+57,callcenterdata,NB đi tự túc,Integer,SUM(handlebyarea[nolongerneededcalls]),,False,False,
+58,callcenterdata,Nội dung/ Tiếp nhận,Number,[A3]/[A2],,False,False,unsafe_division_check
+59,callcenterdata,Tổng cuộc gọi năm hiện tại,Integer,"CALCULATE(
+    SUM(callcenterdata[totalcalls]),
+    FILTER(
+        ALL(callcenterdata),  -- Bỏ mọi filter đang áp dụng trên bảng (để luôn lấy toàn bộ năm)
+        YEAR(callcenterdata[reportfordate]) = YEAR(TODAY())
+    )
+) False",,,True,multiline_export
+67,callcenterdata,Trạm Diên Hồng,Integer,"CALCULATE(
+    SUM('callcenterdata_stationtransfer'[transferCount]),
+    'callcenterdata_stationtransfer'[station_id] = 1
+) False",,,True,multiline_export
+72,callcenterdata,Trạm vệ tinh,Integer,SUM(handlebyarea[transfertosatellite]),,False,False,
+73,callcenterdata,TVT thuộc Trung tâm,Integer,"CALCULATE(
+    SUM(callcenterdata_stationtransfer[transferCount]),
+    callcenterdata_stationtransfer[station_id] <> 1
+) False",,,True,multiline_export
+78,callcenterdata,tỷ lệ cuộc gọi có dấu hiện cc/ tổng số cuộc gọi,Number,[A5]/[A1],,False,False,unsafe_division_check
+87,callcenterdata_stationtransfer,Trạm Bình Trưng,Integer,"CALCULATE(
+    SUM('callcenterdata_stationtransfer'[transferCount]),
+    'callcenterdata_stationtransfer'[station_id] = 43
+) False",,,True,multiline_export
+92,callcenterdata_stationtransfer,Trạm Đường thủy Cần Giờ,Integer,"CALCULATE(
+    SUM('callcenterdata_stationtransfer'[transferCount]),
+    'callcenterdata_stationtransfer'[station_id] = 2
+) False",,,True,multiline_export
+97,callcenterdata_stationtransfer,Trạm TTYT Quận 8,Integer,"CALCULATE(
+    SUM('callcenterdata_stationtransfer'[transferCount]),
+    'callcenterdata_stationtransfer'[station_id] = 3
+) False",,,True,multiline_export
+102,callcenterdata_stationtransfer,TVT BVUB CS2,Integer,"CALCULATE(
+    SUM('callcenterdata_stationtransfer'[transferCount]),
+    'callcenterdata_stationtransfer'[station_id] = 4
+) False",,,True,multiline_export
+107,callcenterdata_stationtransfer,TVT Thủ Đức,Integer,"CALCULATE(
+    SUM('callcenterdata_stationtransfer'[transferCount]),
+    'callcenterdata_stationtransfer'[station_id] = 41
+) False",,,True,multiline_export
+164,chi_so,CS 24_TT,Number,"VAR Ids =
+    IF( ISFILTERED(ListTVT[id]), VALUES(ListTVT[id]), { 1, 2, 3, 4,41 } )
+VAR TblVals =
+    ADDCOLUMNS(
+        ListTVT,
+        ""val"",
+            SWITCH(
+                TRUE(),
+                ListTVT[id] = 1, CALCULATE( AVERAGE( chi_so[cs24] ) ),
+                ListTVT[id] = 2, CALCULATE( AVERAGE( chi_so[cs24cg] ) ),
+                ListTVT[id] = 3, CALCULATE( AVERAGE( chi_so[cs24q8] ) ),
+                ListTVT[id] = 4, CALCULATE( AVERAGE( chi_so[cs24ub] ) ),
+                ListTVT[id] = 41, CALCULATE( AVERAGE( chi_so[cs24td] ) ),
+                BLANK()
+            )
+    )
+RETURN
+AVERAGEX( TblVals, [val] )/60 False",,,True,multiline_export;unsafe_division_check;filter_context_logic
+183,chi_so,CS 25_TT,Number,"VAR Ids =
+    IF( ISFILTERED(ListTVT[id]), VALUES(ListTVT[id]), { 1, 2, 3, 4,41 } )
+VAR TblVals =
+    ADDCOLUMNS(
+        ListTVT,
+        ""val"",
+            SWITCH(
+                TRUE(),
+                ListTVT[id] = 1, CALCULATE( AVERAGE( chi_so[cs25] ) ),
+                ListTVT[id] = 2, CALCULATE( AVERAGE( chi_so[cs25cg] ) ),
+                ListTVT[id] = 3, CALCULATE( AVERAGE( chi_so[cs25q8] ) ),
+                ListTVT[id] = 4, CALCULATE( AVERAGE( chi_so[cs25ub] ) ),
+                ListTVT[id] = 41, CALCULATE( AVERAGE( chi_so[cs25td] ) ),
+                BLANK()
+            )
+    )
+RETURN
+AVERAGEX( TblVals, [val] )/60 False",,,True,multiline_export;unsafe_division_check;filter_context_logic
+202,chi_so,CS 28,Number,AVERAGE(chi_so[cs28]) ,,False,False,
+203,chi_so,CS 29,Number,AVERAGE(chi_so[cs29]),,False,False,
+204,chi_so,CS 30,Number,AVERAGE(chi_so[cs30])/100,,False,False,unsafe_division_check
+205,chi_so,CS 31,Number,AVERAGE(chi_so[cs31]),,False,False,
+206,chi_so,CS 32,Number,AVERAGE(chi_so[cs32])/100,,False,False,unsafe_division_check
+207,chi_so,CS 33,Number,AVERAGE(chi_so[cs33])/100,,False,False,unsafe_division_check
+208,chi_so,CS 35,Number,AVERAGE(chi_so[cs35])/100,,False,False,unsafe_division_check
+209,chi_so,CS 36,Number,AVERAGE(chi_so[cs36])/100,,False,False,unsafe_division_check
+210,chi_so,CS 37,Number,AVERAGE(chi_so[cs37])/100,,False,False,unsafe_division_check
+211,chi_so,CS 38,Number,AVERAGE(chi_so[cs38])/100,,False,False,unsafe_division_check
+212,chi_so,CS 39,Number,AVERAGE(chi_so[cs39])/100,,False,False,unsafe_division_check
+213,chi_so,CS 40,Number,SUM(chi_so[cs40]),,False,False,
+214,chi_so,CS 41,Number,AVERAGE(chi_so[cs41])/100,,False,False,unsafe_division_check
+215,chi_so,CS 42,Number,AVERAGE(chi_so[cs42]),,False,False,
+216,chi_so,CS 43,Number,AVERAGE(chi_so[cs43]),,False,False,
+217,chi_so,CS 44,Number,SUM(chi_so[cs44]),,False,False,
+218,chi_so,CS 45,Number,AVERAGE(chi_so[cs45])/100,,False,False,unsafe_division_check
+219,chi_so,CS 46,Number,AVERAGE(chi_so[cs46])/100,,False,False,unsafe_division_check
+220,chi_so,CS 47,Number,SUM(chi_so[cs47]),,False,False,
+221,chi_so,CS 48,Number,SUM(chi_so[cs48]),,False,False,
+222,chi_so,CS 49,Number,SUM(chi_so[cs49]),,False,False,
+223,chi_so,CS 50,Number,SUM(chi_so[cs50]),,False,False,
+224,chi_so,CS 51_TT (AVG),Number,"AVERAGEX (
+    VALUES ( 'ListTVT'[id] ),
+    VAR _id = 'ListTVT'[id]
+    RETURN
+        SWITCH (
+            TRUE(),
+            _id = 1, CALCULATE ( AVERAGE ( 'chi_so'[cs51] ) ),
+            _id = 2, CALCULATE ( AVERAGE ( 'chi_so'[cs51cg] ) ),
+            _id = 3, CALCULATE ( AVERAGE ( 'chi_so'[cs51q8] ) ),
+            _id = 4, CALCULATE ( AVERAGE ( 'chi_so'[cs51ub] ) ),
+            _id = 41, CALCULATE ( AVERAGE ( 'chi_so'[cs51td] ) ),
+            BLANK()
+        )
+) False",,,True,multiline_export
+239,chi_so,CS 52_TT (AVG),Number,"AVERAGEX (
+    VALUES ( 'ListTVT'[id] ),
+    VAR _id = 'ListTVT'[id]
+    RETURN
+        SWITCH (
+            TRUE(),
+            _id = 1, CALCULATE ( AVERAGE ( 'chi_so'[cs52] ) ),
+            _id = 2, CALCULATE ( AVERAGE ( 'chi_so'[cs52cg] ) ),
+            _id = 3, CALCULATE ( AVERAGE ( 'chi_so'[cs52q8] ) ),
+            _id = 4, CALCULATE ( AVERAGE ( 'chi_so'[cs52ub] ) ),
+            _id = 41, CALCULATE ( AVERAGE ( 'chi_so'[cs52td] ) ),
+            BLANK()
+        )
+) False",,,True,multiline_export
+254,chi_so,CS 53_TT (AVG),Number,"AVERAGEX (
+    VALUES ( 'ListTVT'[id] ),
+    VAR _id = 'ListTVT'[id]
+    RETURN
+        SWITCH (
+            TRUE(),
+            _id = 1, CALCULATE ( AVERAGE ( 'chi_so'[cs53] ) ),
+            _id = 2, CALCULATE ( AVERAGE ( 'chi_so'[cs53cg] ) ),
+            _id = 3, CALCULATE ( AVERAGE ( 'chi_so'[cs53q8] ) ),
+            _id = 4, CALCULATE ( AVERAGE ( 'chi_so'[cs53ub] ) ),
+            _id = 41, CALCULATE ( AVERAGE ( 'chi_so'[cs53td] ) ),
+            BLANK()
+        )
+) False",,,True,multiline_export
+290,DateTable,DayBB,Date,TODAY()-1,,False,False,
+291,DateTable,DayThree,Date,TODAY()-3,,False,False,
+292,DateTable,DayTwo,Date,TODAY()-2,,False,False,
+293,DateTable,YearNow,Integer,YEAR(NOW()),,False,False,
+316,handlebyarea,Tổng ca tử vong,Integer,SUM(handlebyarea[diedpatient])+SUM('outofhospitalreport'[patientdeath]),,False,False,
+317,handlebyarea,Tổng số người bệnh,Integer,SUM(handlebyarea[tripwithpatient])+ SUM(outofhospitalreport[tripswithpatient]),,False,False,
+318,handlebyarea,TotalA_BinhDuong,Integer,"CALCULATE(
+    SUM(handlebyarea[receivedbysatellite]),
+    handlebyarea[byarea] = ""binhDuong""
+) False",,,True,multiline_export
+323,handlebyarea,TotalA_BRVT,Integer,"CALCULATE(
+    SUM(handlebyarea[receivedbysatellite]),
+    handlebyarea[byarea] = ""baRiaVungTau""
+) False",,,True,multiline_export
+479,KCCNBV,1B,Integer,COUNT(KCCNBV[so_benh_an] ),,False,False,
+480,KCCNBV,1B_TT,Integer,"CALCULATE(
+    COUNTROWS('KCCNBV'),
+    'KCCNBV'[tram_xu_ly] = ""TVT TRẠM TRUNG TÂM 115""
+        || 'KCCNBV'[tram_xu_ly] = ""TVT TTYT KHU VỰC BÌNH ĐÔNG (TRUNG TÂM Y TẾ QUẬN 8)""
+        || 'KCCNBV'[tram_xu_ly] = ""TVT Trung tâm cấp cứu 115 - Cần Giờ""
+        || 'KCCNBV'[tram_xu_ly] = ""TVT BV UNG BƯỚU CS2""
+        || 'KCCNBV'[tram_xu_ly] = ""TVT  TTCC115 Thủ Đức""
+        || 'KCCNBV'[tram_xu_ly] = ""TVT TTCC115 Lê Văn Thịnh""
+) False",,,True,multiline_export
+490,KCCNBV,1B_TT nam hien tai,Integer,"CALCULATE(
+    COUNTROWS('KCCNBV'),
+    (
+        'KCCNBV'[tram_xu_ly] = ""TVT TRẠM TRUNG TÂM 115""
+        || 'KCCNBV'[tram_xu_ly] = ""TVT TTYT KHU VỰC BÌNH ĐÔNG (TRUNG TÂM Y TẾ QUẬN 8)""
+        || 'KCCNBV'[tram_xu_ly] = ""TVT Trung tâm cấp cứu 115 - Cần Giờ""
+        || 'KCCNBV'[tram_xu_ly] = ""TVT BV UNG BƯỚU CS2""
+        || 'KCCNBV'[tram_xu_ly] = ""TVT  TTCC115 Thủ Đức""
+        || 'KCCNBV'[tram_xu_ly] = ""TVT TTCC115 Lê Văn Thịnh""
+    ),
+    FILTER(
+        ALL('KCCNBV'),  -- Bỏ mọi filter đang áp dụng trên bảng (để luôn lấy toàn bộ năm)
+        YEAR('KCCNBV'[ngay]) = YEAR(TODAY())
+    )
+) False",,,True,multiline_export
+506,KCCNBV,2B,Integer,"CALCULATE(
+    [1B],
+    NOT (
+        KCCNBV[Xu_tri_fix] IN {
+            ""trên đường đi, người gọi báo không yêu cầu cấp cứu nữa"",
+            ""đến nơi, bệnh nhân được đưa đi tự túc"",
+            ""kiểm tra lại thông tin, người gọi không yêu cầu cấp cứu nữa"",
+            ""n/a""
+        }
+    )
+)
+False",,,True,multiline_export;unsafe_division_check
+518,KCCNBV,3B,Integer,"CALCULATE(COUNT(KCCNBV[stt]),KCCNBV[ThoiLuongXuatXe] <>0)",,False,False,
+519,KCCNBV,4B,Integer,"CALCULATE(
+    [1B],ABS(
+        KCCNBV[Xu_tri_fix] IN {
+            ""không xử trí và chuyển viện"",
+            ""xử trí và chuyển viện""
+        }
+    )
+)
+False",,,True,multiline_export
+528,KCCNBV,4B_TT,Integer,"CALCULATE(SUM(outofhospitalreport[hospitaltransfer])
+) False",,,True,multiline_export
+531,KCCNBV,6B,Integer,"CALCULATE(
+    [1B],
+    SEARCH(""ngưng tim"", KCCNBV[chan_doan_theo_icd], 1, 0) > 0,   -- Check if ""ngưng tim"" is in AF
+    SEARCH(""xử trí"", KCCNBV[Xu_tri_fix], 1, 0) > 0      -- Check if ""xử trí"" is in AH
+)
+False",,,True,multiline_export
+537,KCCNBV,6B_TT,Integer,"CALCULATE(
+    [1B],
+    FILTER(
+        KCCNBV,
+        SEARCH(""ngưng tim"", KCCNBV[chan_doan_theo_icd], 1, 0) > 0
+            && SEARCH(""xử trí"", KCCNBV[Xu_tri_fix], 1, 0) > 0
+            && (
+                KCCNBV[tram_xu_ly] = ""TVT TRẠM TRUNG TÂM 115""
+                || KCCNBV[tram_xu_ly] = ""TVT TTYT KHU VỰC BÌNH ĐÔNG (TRUNG TÂM Y TẾ QUẬN 8)""
+                || KCCNBV[tram_xu_ly] = ""TVT Trung tâm cấp cứu 115 - Cần Giờ""
+                || KCCNBV[tram_xu_ly] = ""TVT BV UNG BƯỚU CS2""
+                || KCCNBV[tram_xu_ly] = ""TVT  TTCC115 Thủ Đức""
+                || KCCNBV[tram_xu_ly] = ""TVT TTCC115 Lê Văn Thịnh""
+            )
+    )
+)
+False",,,True,multiline_export
+555,KCCNBV,7B,Integer,"CALCULATE(
+    [1B],
+    SEARCH(""ngưng tim"", KCCNBV[chan_doan_theo_icd], 1, 0) > 0,
+    SEARCH(""không"", KCCNBV[Xu_tri_fix], 1, 0) = 0
+) +[6B] False",,,True,multiline_export
+560,KCCNBV,8B,Integer,"CALCULATE([1B],KCCNBV[Xu_tri_fix] = ""không hồi sinh tim phổi - lập biên bản tử vong"")",,False,False,
+561,KCCNBV,8B_TT,Integer,"CALCULATE(
+    [1B],
+    KCCNBV[Xu_tri_fix] = ""không hồi sinh tim phổi - lập biên bản tử vong"",
+    KCCNBV[tram_xu_ly] = ""TVT TRẠM TRUNG TÂM 115""
+        || KCCNBV[tram_xu_ly] = ""TVT TTYT KHU VỰC BÌNH ĐÔNG (TRUNG TÂM Y TẾ QUẬN 8)""
+        || KCCNBV[tram_xu_ly] = ""TVT Trung tâm cấp cứu 115 - Cần Giờ""
+        || KCCNBV[tram_xu_ly] = ""TVT BV UNG BƯỚU CS2""
+        || KCCNBV[tram_xu_ly] = ""TVT  TTCC115 Thủ Đức""
+        || KCCNBV[tram_xu_ly] = ""TVT TTCC115 Lê Văn Thịnh""
+) False",,,True,multiline_export
+572,KCCNBV,9B,Integer,"CALCULATE([1B],KCCNBV[Xu_tri_fix] = ""hồi sinh tim phổi - lập biên bản tử vong"")",,False,False,
+573,KCCNBV,9B_TT,Integer,"CALCULATE(
+    [1B],
+    KCCNBV[Xu_tri_fix] = ""hồi sinh tim phổi - lập biên bản tử vong"",
+    KCCNBV[tram_xu_ly] = ""TVT TRẠM TRUNG TÂM 115""
+        || KCCNBV[tram_xu_ly] = ""TVT TTYT KHU VỰC BÌNH ĐÔNG (TRUNG TÂM Y TẾ QUẬN 8)""
+        || KCCNBV[tram_xu_ly] = ""TVT Trung tâm cấp cứu 115 - Cần Giờ""
+        || KCCNBV[tram_xu_ly] = ""TVT BV UNG BƯỚU CS2""
+        || KCCNBV[tram_xu_ly] = ""TVT  TTCC115 Thủ Đức""
+        || KCCNBV[tram_xu_ly] = ""TVT TTCC115 Lê Văn Thịnh""
+) False",,,True,multiline_export
+584,KCCNBV,B10,Integer,[1B],,False,False,
+585,KCCNBV,B11,Integer,"CALCULATE(
+    [1B],ABS(
+        KCCNBV[Xu_tri_fix] IN {
+            ""hồi sinh tim phổi - lập biên bản tử vong"",
+            ""xử trí và chuyển viện"",
+            ""xử trí và thân nhân yêu cầu không chuyển viện""
+        }
+    )
+)
+False",,,True,multiline_export
+595,KCCNBV,B11_TT,Integer,"CALCULATE(
+    [1B],
+    (
+        KCCNBV[Xu_tri_fix] = ""hồi sinh tim phổi - lập biên bản tử vong""
+        || KCCNBV[Xu_tri_fix] = ""xử trí và chuyển viện""
+        || KCCNBV[Xu_tri_fix] = ""xử trí và thân nhân yêu cầu không chuyển viện""
+    ),
+    (
+        KCCNBV[tram_xu_ly] = ""TVT TRẠM TRUNG TÂM 115""
+        || KCCNBV[tram_xu_ly] = ""TVT TTYT KHU VỰC BÌNH ĐÔNG (TRUNG TÂM Y TẾ QUẬN 8)""
+        || KCCNBV[tram_xu_ly] = ""TVT Trung tâm cấp cứu 115 - Cần Giờ""
+        || KCCNBV[tram_xu_ly] = ""TVT BV UNG BƯỚU CS2""
+        || KCCNBV[tram_xu_ly] = ""TVT  TTCC115 Thủ Đức""
+        || KCCNBV[tram_xu_ly] = ""TVT TTCC115 Lê Văn Thịnh""
+    )
+) False",,,True,multiline_export
+612,KCCNBV,B12,Number,"SUMX(
+    KCCNBV,
+    ABS(KCCNBV[ThoiLuongToiHienTruong])
+) / 60 False",,,True,multiline_export;unsafe_division_check
+616,KCCNBV,B13,Number,"SUMX(
+    KCCNBV,
+    ABS(KCCNBV[ThoiLuongXuatXe]
+)) / 60 False",,,True,multiline_export;unsafe_division_check
+620,KCCNBV,B14,Number,"CALCULATE(AVERAGE(KCCNBV[ThoiGianToiHienTruong])/60,KCCNBV[ThoiGianToiHienTruong] >0)",,False,False,unsafe_division_check
+621,KCCNBV,B15 chưa có,Integer,,,False,False,empty_expression
+622,KCCNBV,B16 chưa có,Integer,,,False,False,empty_expression
+623,KCCNBV,B17,Integer,[4B],,False,False,
+624,KCCNBV,B18,Number,AVERAGE(KCCNBV[ThoiLuongGiaoBenh])/60,,False,False,unsafe_division_check
+625,KCCNBV,B19 khong co data,Integer,,,False,False,empty_expression
+626,KCCNBV,bo 5B,Integer,[2B],,False,False,
+627,KCCNBV,CS 11,Number,AVERAGE(KCCNBV[Tgtaophieu]),,False,False,
+628,KCCNBV,CS15 Tỷ lệ trường hợp xuất xe  B1/A7,Number,[B1_BB]/[A7] False,,,True,multiline_export;unsafe_division_check
+630,KCCNBV,CS16 Tỷ lệ trường hợp có bệnh nhân,Number,"VAR TL = DIVIDE([2B], [3B] , 0)
+RETURN IF(TL > 1, 1, TL) False",,,True,multiline_export
+633,KCCNBV,CS17 Tỷ lệ trường hợp chuyển viện,Number,[4B]/[2B],,False,False,unsafe_division_check
+634,KCCNBV,CS18 Tỷ lệ trường hợp hồi sinh tim phổi thành công,Number,[6B]/[7B],,False,False,unsafe_division_check
+635,KCCNBV,CS19 Tổng số trường hợp tử vong,Integer,[8B] + [9B],,False,False,
+636,KCCNBV,CS20 Tỷ lệ trường hợp có dấu hiệu cấp cứu,Number,[B10]/[1B],,False,False,unsafe_division_check
+637,KCCNBV,CS21 Tỷ lệ trường hợp can thiệp y tế,Number,[B11]/[2B],,False,False,unsafe_division_check
+638,KCCNBV,CS22 Trung bình thời gian kích hoạt cấp cứu,Number,AVERAGE('KCCNBV'[ThoiLuongXuatXe]),,False,False,
+639,KCCNBV,CS23 Trung bình thời gian tiếp cận bệnh nhân,Number,AVERAGE(KCCNBV[ThoiLuongToiHienTruong]),,False,False,
+640,KCCNBV,CS25 Trung Bình Thời lượng tới bệnh viện,Number,AVERAGE('KCCNBV'[ThoiLuongDenBenhVien]),,False,False,
+641,KCCNBV,CS26 Trung bình thời gian giao bệnh,Number,AVERAGE('KCCNBV'[ThoiLuongGiaoBenh]),,False,False,
+642,KCCNBV,TGdenBenhVienTB_TT,Number,"AVERAGEX(
+    FILTER(
+        'KCCNBV',
+        'KCCNBV'[tram_xu_ly] = ""TVT TRẠM TRUNG TÂM 115""
+        || 'KCCNBV'[tram_xu_ly] = ""TVT TRUNG TÂM Y TẾ QUẬN 8""
+        || 'KCCNBV'[tram_xu_ly] = ""TVT TTYT KHU VỰC BÌNH ĐÔNG (TRUNG TÂM Y TẾ QUẬN 8)""
+        || 'KCCNBV'[tram_xu_ly] = ""TVT Trung tâm cấp cứu 115 - Cần Giờ""
+        || 'KCCNBV'[tram_xu_ly] = ""TVT BV UNG BƯỚU CS2""
+        || 'KCCNBV'[tram_xu_ly] = ""TVT  TTCC115 Thủ Đức""
+        || 'KCCNBV'[tram_xu_ly] = ""TVT TTCC115 Lê Văn Thịnh""
+    ),
+    VAR Diff = ( TIMEVALUE(KCCNBV[ThoiGianToiBenhvien]) - TIMEVALUE(KCCNBV[ThoiGianToiHienTruong]) ) * 1440
+    RETURN IF(Diff < 0, Diff + 1440, Diff)
+) False",,,True,multiline_export
+657,KCCNBV,TGdenhientruongTB_TT,Number,"AVERAGEX(
+    FILTER(
+        'KCCNBV',
+        'KCCNBV'[tram_xu_ly] IN {
+            ""TVT TRẠM TRUNG TÂM 115"",
+            ""TVT TTYT KHU VỰC BÌNH ĐÔNG (TRUNG TÂM Y TẾ QUẬN 8)"",
+            ""TVT Trung tâm cấp cứu 115 - Cần Giờ"",
+            ""TVT BV UNG BƯỚU CS2"",
+            ""TVT  TTCC115 Thủ Đức"",
+            ""TVT TTCC115 Lê Văn Thịnh""
+        }
+    ),
+    KCCNBV[ThoiLuongToiHienTruong]
+) False",,,True,multiline_export
+672,KCCNBV,TGgiaoBenhTB_TT,Number,"AVERAGEX(
+    FILTER(
+        'KCCNBV',
+        'KCCNBV'[tram_xu_ly] = ""TVT TRẠM TRUNG TÂM 115""
+        || 'KCCNBV'[tram_xu_ly] = ""TVT TTYT KHU VỰC BÌNH ĐÔNG (TRUNG TÂM Y TẾ QUẬN 8)""
+        || 'KCCNBV'[tram_xu_ly] = ""TVT Trung tâm cấp cứu 115 - Cần Giờ""
+        || 'KCCNBV'[tram_xu_ly] = ""TVT BV UNG BƯỚU CS2""
+        || 'KCCNBV'[tram_xu_ly] = ""TVT  TTCC115 Thủ Đức""
+        || 'KCCNBV'[tram_xu_ly] = ""TVT TTCC115 Lê Văn Thịnh""
+    ),
+    KCCNBV[ThoiLuongGiaoBenh]
+) False",,,True,multiline_export
+685,KCCNBV,TGtiepnhan,Number,AVERAGE(KCCNBV[Tgtaophieu])*60,,False,False,
+686,KCCNBV,TGxuatXeTB_TT,Number,"AVERAGEX(
+    FILTER(
+        'KCCNBV',
+        'KCCNBV'[tram_xu_ly] = ""TVT TRẠM TRUNG TÂM 115""
+        || 'KCCNBV'[tram_xu_ly] = ""TVT TTYT KHU VỰC BÌNH ĐÔNG (TRUNG TÂM Y TẾ QUẬN 8)""
+        || 'KCCNBV'[tram_xu_ly] = ""TVT Trung tâm cấp cứu 115 - Cần Giờ""
+        || 'KCCNBV'[tram_xu_ly] = ""TVT BV UNG BƯỚU CS2""
+        || 'KCCNBV'[tram_xu_ly] = ""TVT  TTCC115 Thủ Đức""
+        || 'KCCNBV'[tram_xu_ly] = ""TVT TTCC115 Lê Văn Thịnh""
+    ),
+    KCCNBV[ThoiLuongXuatXe]
+) False",,,True,multiline_export
+699,KCCNBV,TongCaTuVong,Integer,"COALESCE ( [8B], 0 ) + COALESCE ( [9B], 0 ) False",,,True,multiline_export
+701,KCCNBV,trung vị,Number,"PERCENTILE.INC(KCCNBV[TGTiepnhanCCTB],0.7)",,False,False,
+702,KCCNBV,TyLeNB_TT_TVT,Number,"DIVIDE ( 'outofhospitalreport'[B1_BB], 'handlebyarea'[Tổng số người bệnh], 1 ) False",,,True,multiline_export
+816,outofhospitalreport,1B_BB nam hien tai,Integer,"CALCULATE(
+    SUM(outofhospitalreport[tripswithpatient]),
+    FILTER(
+        ALL('outofhospitalreport'),  -- Bỏ mọi filter đang áp dụng trên bảng (để luôn lấy toàn bộ năm)
+        YEAR('outofhospitalreport'[reportdate]) = YEAR(TODAY())
+    )
+) False",,,True,multiline_export
+824,outofhospitalreport,A7_BB,Integer,SUM('outofhospitalreport'[callsfromdispatcher] ),,False,False,
+825,outofhospitalreport,B1_BB,Integer,"COALESCE ( SUM ( 'outofhospitalreport'[tripswithpatient] ), 0 ) False",,,True,multiline_export
+827,outofhospitalreport,B3_BB,Integer,SUM(outofhospitalreport[dispatchedtrips]),,False,False,
+828,outofhospitalreport,CS 15_BB,Number,[B1_BB]/[A7_BB],,False,False,unsafe_division_check
+829,outofhospitalreport,CS 19_BB,Integer,SUM('outofhospitalreport'[patientdeath]),,False,False,
+830,outofhospitalreport,Tổng NB tử vong hiện tại,Integer,"CALCULATE(
+    SUM('outofhospitalreport'[patientdeath]),
+    FILTER(
+        ALL(outofhospitalreport),  -- Bỏ mọi filter đang áp dụng trên bảng (để luôn lấy toàn bộ năm)
+        YEAR('outofhospitalreport'[reportdate]) = YEAR(TODAY())
+    )
+) False",,,True,multiline_export
+838,outofhospitalreport,TyLeNB_TV_TVT,Number,"DIVIDE ( [CS 19_BB], 'handlebyarea'[Tổng ca tử vong], 1 ) False",,,True,multiline_export
+847,receiving_hospital,Sum hospital,Integer,"SUMX(receiving_hospital, receiving_hospital[Sum])",,False,False,
+848,receiving_hospital,total bv,Integer,"CALCULATE(receiving_hospital[Sum hospital], ALLSELECTED(receiving_hospital))",,False,False,
+849,receiving_hospital,Tyle bv,Number,"DIVIDE( [Sum hospital], [total bv] , 0)",,False,False,
+889,Suco,Count sự cố Khoa Cấp cứu ngoài bệnh viện,Integer,"COALESCE(
+    CALCULATE(
+        COUNTA('Suco'[Công_tác_tại_khoa]),
+        'Suco'[Công_tác_tại_khoa] IN { ""Khoa Cấp cứu ngoài bệnh viện"" }
+    ), 
+0
+) False",,,True,multiline_export
+897,Suco,Count sự cố Khoa Điều hành,Integer,"COALESCE(
+    CALCULATE(
+    COUNTA('Suco'[Công_tác_tại_khoa]),
+    'Suco'[Công_tác_tại_khoa] IN { ""Khoa Điều hành"" }
+),0
+) False",,,True,multiline_export
+910,tranfer_satellite,Sum accept,Integer,SUM(tranfer_satellite[accept]),,False,False,
+911,tranfer_satellite,Sum deny,Integer,SUM(tranfer_satellite[deny]),,False,False,
+912,tranfer_satellite,total accept,Integer,"CALCULATE([Sum accept], ALLSELECTED(tranfer_satellite))",,False,False,
+913,tranfer_satellite,total deny,Integer,"CALCULATE([Sum deny], ALLSELECTED(tranfer_satellite))",,False,False,
+914,tranfer_satellite,Tyle accept,Number,"DIVIDE( [Sum accept], [Sum accept] + [Sum deny] , 0)",,False,False,
+915,tranfer_satellite,Tyle deny,Number,"DIVIDE( [Sum deny], [Sum accept] + [Sum deny] , 0)",,False,False,

@@ -1,0 +1,29 @@
+﻿table,columns,measures,note
+ChoiseYesterday,3,0,
+DateTable,12,4,
+DateTableTemplate_84b6ab87-67f4-4af6-a1da-de6e9515536f,8,0,Auto date table - không cần migrate như bảng nghiệp vụ
+KCCNBV,33,46,
+ListTVT,3,0,
+LocalDateTable_068f9eaa-b22e-4d2e-a613-65b9323781a3,8,0,Auto date table - không cần migrate như bảng nghiệp vụ
+LocalDateTable_278f1329-d82c-4b51-bddd-43c8a19938ec,8,0,Auto date table - không cần migrate như bảng nghiệp vụ
+LocalDateTable_3dd59da2-b452-4508-81bd-9166882fb47a,8,0,Auto date table - không cần migrate như bảng nghiệp vụ
+LocalDateTable_54a34780-9e13-4683-b9e1-7a2fc564f2c0,8,0,Auto date table - không cần migrate như bảng nghiệp vụ
+LocalDateTable_55a95fbc-0eed-448e-b592-0fb56277baef,8,0,Auto date table - không cần migrate như bảng nghiệp vụ
+LocalDateTable_8395d98b-0973-40bb-9955-a4244840503d,8,0,Auto date table - không cần migrate như bảng nghiệp vụ
+LocalDateTable_c18ce6f6-0491-47a3-94c6-9e88fa6544a3,8,0,Auto date table - không cần migrate như bảng nghiệp vụ
+LocalDateTable_d7ef6d45-2ab5-4f77-83b8-5205d8f3fca2,8,0,Auto date table - không cần migrate như bảng nghiệp vụ
+LocalDateTable_e0c78491-5f9e-464a-84a4-06817eada731,8,0,Auto date table - không cần migrate như bảng nghiệp vụ
+LocalDateTable_ec556f7a-6ecb-42b3-9af9-ed04d1335c0a,8,0,Auto date table - không cần migrate như bảng nghiệp vụ
+Suco,7,2,
+callcenterdata,17,36,
+callcenterdata_stationtransfer,8,5,
+chi_so,52,27,
+handlebyarea,14,4,
+hospital,6,0,
+ondutyleader,3,0,
+operatorleader,3,0,
+outofhospitalreport,13,8,
+receiving_hospital,7,3,
+reportingstation,6,0,
+satellite,6,0,
+tranfer_satellite,6,6,
