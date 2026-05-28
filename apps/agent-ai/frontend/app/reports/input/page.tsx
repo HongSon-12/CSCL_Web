@@ -102,39 +102,46 @@ export default function ReportsInputPage() {
   const toast = useToast()
   const { currentUser, token } = useAuth()
 
-  // Master lists
-  const [departments, setDepartments] = useState<MasterItem[]>([])
-  const [stations, setStations] = useState<MasterItem[]>([])
-  const [loadingMaster, setLoadingMaster] = useState(true)
+  // --- TRẠNG THÁI DANH MỤC MASTER DATA ---
+  const [departments, setDepartments] = useState<MasterItem[]>([]) // Danh sách khoa phòng khả dụng
+  const [stations, setStations] = useState<MasterItem[]>([])       // Danh sách trạm vệ tinh
+  const [loadingMaster, setLoadingMaster] = useState(true)         // Loading trạng thái danh mục
 
-  // Filters
+  // --- TRẠNG THÁI BỘ LỌC (FILTERS) ---
+  // Ngày báo cáo (mặc định lấy ngày hôm nay dạng YYYY-MM-DD)
   const [reportDate, setReportDate] = useState(
     () => new Date().toISOString().split('T')[0]
   )
-  const [periodType, setPeriodType] = useState('daily')
-  const [selectedDept, setSelectedDept] = useState('')
-  const [selectedStation, setSelectedStation] = useState('')
-  const [selectedGroup, setSelectedGroup] = useState('')
+  const [periodType, setPeriodType] = useState('daily')            // Tần suất: daily (ngày), monthly (tháng)
+  const [selectedDept, setSelectedDept] = useState('')             // Khoa phòng được chọn
+  const [selectedStation, setSelectedStation] = useState('')       // Trạm vệ tinh được chọn
+  const [selectedGroup, setSelectedGroup] = useState('')           // Nhóm biến số (Nhóm A hoặc Nhóm B)
 
-  // Data fetching
-  const [template, setTemplate] = useState<FormTemplate | null>(null)
-  const [existingBatch, setExistingBatch] = useState<InputBatch | null>(null)
-  const [loadingData, setLoadingData] = useState(false)
+  // --- TRẠNG THÁI DỮ LIỆU BIỂU MẪU & LÔ HIỆN TẠI ---
+  const [template, setTemplate] = useState<FormTemplate | null>(null)          // Cấu trúc form template trả về từ API
+  const [existingBatch, setExistingBatch] = useState<InputBatch | null>(null)  // Thông tin lô số liệu hiện tại (nếu đã lưu nháp)
+  const [loadingData, setLoadingData] = useState(false)                        // Loading khi tải biểu mẫu/lô số liệu
 
-  // Form values
+  // --- TRẠNG THÁI FORM NHẬP LIỆU ---
+  // formValues: Lưu trữ giá trị (value) và ghi chú riêng (note) cho từng biến số lâm sàng.
+  // Cấu trúc: { "A1": { value: "12", note: "Tăng do ca trực đông" } }
   const [formValues, setFormValues] = useState<
     Record<string, { value: string; note: string }>
   >({})
+  // validationErrors: Bản đồ ánh xạ lỗi của từng trường. Cấu trúc: { "A1": "Giá trị tối thiểu cho phép là 0" }
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string>
   >({})
-  const [batchNote, setBatchNote] = useState('')
+  const [batchNote, setBatchNote] = useState('')                  // Ghi chú chung cho toàn bộ lô báo cáo
 
-  // Operation state
-  const [saving, setSaving] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
+  // --- TRẠNG THÁI XỬ LÝ GIAO DỊCH ---
+  const [saving, setSaving] = useState(false)                     // Trạng thái đang lưu nháp
+  const [submitting, setSubmitting] = useState(false)             // Trạng thái đang gửi duyệt
 
-  // 1. Fetch departments and stations on mount
+  // ==========================================
+  // [BƯỚC 1] TẢI THÔNG TIN DANH MỤC KHI KHỞI CHẠY (ON MOUNT)
+  // Lấy danh sách departments, stations và tự động chọn khoa mặc định dựa trên Scope của User.
+  // ==========================================
   useEffect(() => {
     async function loadMaster() {
       try {
@@ -151,7 +158,7 @@ export default function ReportsInputPage() {
           setDepartments(deptsData.data || [])
           setStations(statsData.data || [])
 
-          // Auto-select first department matching user's scopes if any, otherwise default
+          // Tự động chọn khoa phòng đầu tiên khớp với phạm vi Scope bộ phận được gán của người dùng
           const userDepts = currentUser?.scopes
             .filter((s) => s.scope_type === 'department')
             .map((s) => s.scope_code) || []
@@ -180,7 +187,12 @@ export default function ReportsInputPage() {
     }
   }, [token, currentUser, toast])
 
-  // 2. Fetch Form Template and Existing Batch when filters change
+  // ==========================================
+  // [BƯỚC 2] TRUY VẤN BIỂU MẪU DỰA TRÊN BỘ LỌC ĐÃ CHỌN (DATE, DEPT, STATION...)
+  // Đọc form template từ API, đồng thời truy vấn xem đã có Lô báo cáo nháp nào cho bộ lọc này chưa.
+  // - Nếu đã có lô nháp: Đổ dữ liệu cũ đã lưu vào form để sửa tiếp.
+  // - Nếu chưa có lô nháp: Khởi tạo form trống tương ứng các biến số của biểu mẫu template.
+  // ==========================================
   const fetchData = useCallback(async () => {
     if (!selectedDept) return
 
@@ -189,7 +201,7 @@ export default function ReportsInputPage() {
     try {
       const headers = { Authorization: `Bearer ${token}` }
 
-      // Fetch template
+      // 1. Tải cấu trúc biểu mẫu trường nhập liệu (Form Template)
       const templateQuery = new URLSearchParams({
         report_date: reportDate,
         period_type: periodType,
@@ -203,7 +215,7 @@ export default function ReportsInputPage() {
         { headers }
       )
 
-      // Fetch existing batches for the day/dept/station to see if one matches
+      // 2. Tìm kiếm lô số liệu đã lập trong ngày của khoa/trạm
       const batchesQuery = new URLSearchParams({
         date: reportDate,
         department_code: selectedDept,
@@ -219,7 +231,7 @@ export default function ReportsInputPage() {
 
         setTemplate(templateData.data)
 
-        // Find if there is an exact batch matching date, period, department, station
+        // Đối chiếu tìm kiếm lô khớp chính xác tần suất và trạm vệ tinh
         const matches: InputBatch[] = batchesData.data || []
         const exactMatch = matches.find(
           (b) =>
@@ -228,7 +240,7 @@ export default function ReportsInputPage() {
         )
 
         if (exactMatch) {
-          // Fetch complete batch detail with records
+          // Lấy chi tiết lô kèm danh sách bản ghi số liệu chi tiết để điền vào form
           const detailRes = await fetch(
             `/api/v1/quality/input/batches/${exactMatch.id}`,
             { headers }
@@ -239,7 +251,7 @@ export default function ReportsInputPage() {
             setExistingBatch(fullBatch)
             setBatchNote(fullBatch.note || '')
 
-            // Pre-populate values
+            // Đổ dữ liệu cũ đã lưu từ database vào giao diện
             const populatedValues: Record<string, { value: string; note: string }> = {}
             fullBatch.records.forEach((rec) => {
               populatedValues[rec.variable_code] = {
@@ -250,10 +262,10 @@ export default function ReportsInputPage() {
             setFormValues(populatedValues)
           }
         } else {
+          // Chưa tồn tại bản ghi lưu nháp -> Khởi tạo form trống trơn
           setExistingBatch(null)
           setBatchNote('')
 
-          // Initialize empty values matching the template
           const initialValues: Record<string, { value: string; note: string }> = {}
           const fields: FormField[] = templateData.data.fields || []
           fields.forEach((f) => {
@@ -289,7 +301,10 @@ export default function ReportsInputPage() {
     }
   }, [fetchData, token, selectedDept])
 
-  // 3. Handle input changes
+  // ==========================================
+  // [BƯỚC 3] XỬ LÝ SỰ KIỆN THAY ĐỔI GIÁ TRỊ TRÊN CÁC Ô NHẬP LIỆU (INPUT HANDLERS)
+  // Cập nhật giá trị vào React state và tự động xóa bỏ viền cảnh báo đỏ (lỗi validate) khi người dùng gõ lại.
+  // ==========================================
   const handleValueChange = (varCode: string, val: string) => {
     setFormValues((prev) => ({
       ...prev,
@@ -299,7 +314,7 @@ export default function ReportsInputPage() {
       },
     }))
 
-    // Clear specific validation error on type
+    // Tự động xóa thông báo lỗi khi người dùng chỉnh sửa dữ liệu của ô đó
     if (validationErrors[varCode]) {
       setValidationErrors((prev) => {
         const copy = { ...prev }
@@ -319,7 +334,13 @@ export default function ReportsInputPage() {
     }))
   }
 
-  // 4. Client-side Validation
+  // ==========================================
+  // [BƯỚC 4] KIỂM TRA TÍNH HỢP LỆ DỮ LIỆU PHÍA CLIENT (CLIENT-SIDE VALIDATIONS)
+  // Thực hiện validate nhanh trước khi gửi lên API để tăng trải nghiệm người dùng:
+  // - Bắt buộc nhập các trường required.
+  // - Định dạng số hợp lệ.
+  // - Nằm trong khoảng tối thiểu (min) và tối đa (max) của cấu hình nghiệp vụ chỉ số.
+  // ==========================================
   const validateForm = (): boolean => {
     if (!template) return false
 
@@ -329,21 +350,25 @@ export default function ReportsInputPage() {
     template.fields.forEach((field) => {
       const fieldVal = formValues[field.variable_code]?.value || ''
 
+      // 1. Kiểm tra trường bắt buộc (Required check)
       if (field.required && fieldVal.trim() === '') {
         errors[field.variable_code] = 'Trường này là bắt buộc nhập'
         isValid = false
       } else if (fieldVal.trim() !== '') {
+        // 2. Kiểm tra định dạng số (Numeric check)
         const num = parseFloat(fieldVal)
         if (isNaN(num)) {
           errors[field.variable_code] = 'Phải nhập định dạng số hợp lệ'
           isValid = false
         } else {
+          // 3. Kiểm tra chặn ngưỡng tối thiểu (Min value check)
           if (field.min !== null && num < field.min) {
             errors[
               field.variable_code
             ] = `Giá trị tối thiểu cho phép là ${field.min}`
             isValid = false
           }
+          // 4. Kiểm tra chặn ngưỡng tối đa (Max value check)
           if (field.max !== null && num > field.max) {
             errors[
               field.variable_code
@@ -358,7 +383,12 @@ export default function ReportsInputPage() {
     return isValid
   }
 
-  // 5. Handle Save Draft
+  // ==========================================
+  // [BƯỚC 5] LƯU DỮ LIỆU DẠNG BẢN NHÁP (SAVE DRAFT)
+  // Lưu số liệu để giữ tiến độ mà chưa nộp khóa sổ:
+  // - Tạo mới lô (POST /api/v1/quality/input/batches) nếu chưa lưu lần nào.
+  // - Cập nhật đè lô hiện tại (PUT /api/v1/quality/input/batches/{id}) nếu đã lưu nháp trước đó.
+  // ==========================================
   const handleSaveDraft = async () => {
     if (!template) return
     if (!validateForm()) {
@@ -374,6 +404,7 @@ export default function ReportsInputPage() {
 
     setSaving(true)
     try {
+      // Chuẩn bị payload danh sách số liệu gửi đi
       const recordsPayload = template.fields
         .map((field) => {
           const formVal = formValues[field.variable_code]
@@ -387,7 +418,7 @@ export default function ReportsInputPage() {
             note: formVal?.note || '',
           }
         })
-        .filter((r) => r.value !== null || r.note !== '') // Filter out empty records
+        .filter((r) => r.value !== null || r.note !== '') // Chỉ gửi các dòng có điền dữ liệu
 
       const headers = {
         'Content-Type': 'application/json',
@@ -396,7 +427,7 @@ export default function ReportsInputPage() {
 
       let res: Response
       if (existingBatch) {
-        // Update batch
+        // Cập nhật lô nháp hiện tại (PUT)
         res = await fetch(`/api/v1/quality/input/batches/${existingBatch.id}`, {
           method: 'PUT',
           headers,
@@ -406,7 +437,7 @@ export default function ReportsInputPage() {
           }),
         })
       } else {
-        // Create batch
+        // Tạo mới lô nháp lần đầu (POST)
         res = await fetch('/api/v1/quality/input/batches', {
           method: 'POST',
           headers,
@@ -430,7 +461,7 @@ export default function ReportsInputPage() {
           duration: 3000,
           isClosable: true,
         })
-        void fetchData()
+        void fetchData() // Cập nhật lại giao diện và mã lô vừa sinh
       } else {
         throw new Error(resData.detail || 'Không lưu được dữ liệu nháp.')
       }
@@ -447,7 +478,13 @@ export default function ReportsInputPage() {
     }
   }
 
-  // 6. Handle Submit
+  // ==========================================
+  // [BƯỚC 6] NỘP BÁO CÁO GỬI DUYỆT (SUBMIT BATCH)
+  // Thực hiện khóa số liệu và chuyển trạng thái của lô sang 'Submitted' (Chờ duyệt):
+  // - Yêu cầu bắt buộc phải đã thực hiện lưu nháp ít nhất 1 lần để có existingBatch.id.
+  // - Nếu có bất kỳ dòng nào vi phạm nghiệp vụ (báo đỏ), API sẽ chặn gửi nộp (Hard Stop).
+  // - Sau khi submit thành công, lô sẽ chuyển sang trạng thái chỉ đọc (Read-only), không thể chỉnh sửa trừ phi bị từ chối làm lại.
+  // ==========================================
   const handleSubmit = async () => {
     if (!existingBatch) {
       toast({
@@ -492,7 +529,7 @@ export default function ReportsInputPage() {
           duration: 4000,
           isClosable: true,
         })
-        void fetchData()
+        void fetchData() // Reload lại form ở chế độ chỉ đọc (Read-only)
       } else {
         throw new Error(resData.detail || 'Không gửi duyệt được.')
       }

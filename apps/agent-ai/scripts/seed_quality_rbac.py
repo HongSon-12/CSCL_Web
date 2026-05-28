@@ -25,6 +25,10 @@ from models import (  # noqa: E402
     QualityUserRole,
     QualityUserScope,
     quality_role_permissions,
+    QualityReviewTask,
+    QualityPeriodLock,
+    QualityCalculationRun,
+    QualityIndicatorResult,
 )
 from quality_seed_data import (  # noqa: E402
     QUALITY_DEPARTMENTS,
@@ -65,6 +69,10 @@ QUALITY_TABLES = [
     QualityUserScope.__table__,
     QualityAuditLog.__table__,
     QualityDataQualityLog.__table__,
+    QualityReviewTask.__table__,
+    QualityPeriodLock.__table__,
+    QualityCalculationRun.__table__,
+    QualityIndicatorResult.__table__,
 ]
 
 

@@ -68,8 +68,8 @@ reject_input_batch
 ### Backend
 
 - List period locks.
-- Lock period.
-- Unlock period.
+- Lock period (Hệ thống tự động kích hoạt khi Trưởng khoa/Reviewer phê duyệt số liệu).
+- Unlock period (Mở khóa phục vụ điều chỉnh).
 - Thêm guard vào input/import APIs nếu chưa có.
 
 ### Permission
@@ -80,11 +80,11 @@ reports:period_lock:lock
 reports:period_lock:unlock
 ```
 
-### Quy tắc lock
+### Quy tắc lock & Mở khóa
 
-- Nên yêu cầu tất cả batch trong kỳ/scope đã approved hoặc cancelled.
-- Không cho lock nếu còn batch submitted chưa xử lý, trừ khi `quality_admin` override.
-- Kỳ đã khóa chặn create/update/submit/confirm import.
+- **Duyệt đồng nghĩa với Khóa sổ:** Khi Trưởng khoa phê duyệt đợt số liệu (`POST /approve`), batch status tự động chuyển sang `'locked'` và sinh bản ghi `QualityPeriodLock(is_locked=True)` tương ứng.
+- **Mở khóa hoàn nháp:** Khi thực hiện mở khóa một kỳ hạn báo cáo (`POST /unlock`), hệ thống tự động đưa **tất cả** các lô số liệu con tương ứng ngược về trạng thái **Nháp (draft)** để nhân viên có thể sửa đổi và gửi duyệt lại.
+- Kỳ đã khóa chặn hoàn toàn hành động create/update/submit/confirm import.
 - Unlock bắt buộc lý do.
 
 ### Audit
@@ -108,10 +108,10 @@ unlock_period
 
 ### `/reports/locked-periods`
 
-- Filter date/period/department/station.
-- List lock status.
-- Lock/unlock action.
-- Unlock reason modal.
+- Ẩn form khóa sổ thủ công.
+- Hiển thị danh sách kỳ báo cáo đã khóa rộng toàn màn hình (Full width).
+- Bổ sung banner giới thiệu cơ chế tự động khóa sổ khi duyệt và mở khóa hồi nháp kỳ.
+- Nút **Mở khóa** kích hoạt Modal nhập lý do mở khóa bắt buộc phục vụ Audit Trail.
 
 ---
 
@@ -119,14 +119,11 @@ unlock_period
 
 ```text
 Manual input/import confirmed:
-  draft → submitted → approved → locked
+  draft → submitted → locked (auto-locked on approve)
                    ↘ rejected → draft/cancelled
-```
 
-Period lock:
-
-```text
-unlocked → locked → unlocked (with reason) → locked
+Unlock Period Lock:
+  locked → unlocked (reverts all child batches back to 'draft')
 ```
 
 ---
@@ -134,18 +131,18 @@ unlocked → locked → unlocked (with reason) → locked
 ## 8. Checklist nghiệm thu Phase 5
 
 ```text
-[ ] Batch submit tạo review task
-[ ] Reviewer xem task theo scope
-[ ] Approve được batch submitted
-[ ] Reject bắt buộc reason
-[ ] Data entry không tự approve nếu không có quyền đặc biệt
-[ ] Lock period được
-[ ] Kỳ đã khóa chặn sửa input/import confirm
-[ ] Unlock period yêu cầu reason
-[ ] Audit log có approve/reject/lock/unlock
-[ ] UI review hoạt động
-[ ] UI locked-periods hoạt động
-[ ] Không làm Agent-AI
+[x] Batch submit tạo review task
+[x] Reviewer xem task theo scope
+[x] Phê duyệt tự động chuyển batch sang locked và khóa sổ kỳ hạn
+[x] Reject bắt buộc reason
+[x] Data entry không tự approve nếu không có quyền đặc biệt
+[x] Mở khóa kỳ báo cáo tự động hoàn trạng thái các lô con về draft để sửa đổi
+[x] Kỳ đã khóa chặn sửa input/import confirm
+[x] Unlock period yêu cầu reason bắt buộc phục vụ thanh tra
+[x] Audit log có approve/reject/lock/unlock đầy đủ
+[x] UI review hoạt động mượt mà
+[x] UI locked-periods hoạt động toàn màn hình (không có form khóa tay)
+[x] Không làm Agent-AI
 ```
 
 ---

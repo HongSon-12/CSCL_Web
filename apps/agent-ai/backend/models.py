@@ -419,3 +419,142 @@ class QualityInputRecord(Base):
     # Quan hệ liên kết ngược tới Lô báo cáo cha
     batch = relationship("QualityInputBatch", back_populates="records")
 
+
+class QualityImportBatch(Base):
+    """
+    [PHASE 4] Đợt Nhập Báo Cáo Từ Tệp Excel/CSV (quality_import_batches)
+    Bảng này lưu trữ siêu dữ liệu (metadata) của một tệp Excel/CSV được tải lên hệ thống.
+    """
+    __tablename__ = "quality_import_batches"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    batch_code = Column(Text, unique=True, nullable=False)      # Mã đợt import (Ví dụ: IMP-YYYYMMDD-XXXX)
+    file_name = Column(Text, nullable=False)                    # Tên tệp tin gốc của người dùng
+    file_path = Column(Text, nullable=False)                    # Đường dẫn lưu trữ private thực tế trên máy chủ
+    file_hash = Column(Text, nullable=False)                    # Chữ ký số SHA256 chống trùng lặp tệp
+    status = Column(Text, default="uploaded")                   # Trạng thái: uploaded (đang chờ), validated (đã kiểm tra), confirmed (đã nạp chính thức), cancelled (đã hủy)
+    total_rows = Column(Integer, default=0)                     # Tổng số dòng trong tệp
+    valid_rows = Column(Integer, default=0)                     # Số dòng hợp lệ
+    warning_rows = Column(Integer, default=0)                   # Số dòng có cảnh báo nhẹ
+    error_rows = Column(Integer, default=0)                     # Số dòng có lỗi nghiêm trọng (chặn nộp)
+    created_by = Column(Text, nullable=False)                   # Tài khoản thực hiện tải lên tệp
+    created_at = Column(DateTime, default=datetime.utcnow)      # Thời điểm đăng tải
+    processed_by = Column(Text)                                 # Tài khoản phê duyệt nạp hoặc hủy đợt import
+    processed_at = Column(DateTime)                             # Thời điểm xử lý hành động confirm/cancel
+
+    # Mối quan hệ 1-N tới chi tiết các dòng Excel được phân tách lưu tạm
+    rows = relationship("QualityImportRow", back_populates="batch", cascade="all, delete-orphan")
+
+
+class QualityImportRow(Base):
+    """
+    [PHASE 4] Dòng Dữ Liệu Phân Tách Từ Tệp Excel/CSV Lưu Tạm (quality_import_rows)
+    Bảng đệm (staging area) lưu trữ tạm thời từng dòng dữ liệu Excel đã parse phục vụ validate và preview.
+    """
+    __tablename__ = "quality_import_rows"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    import_batch_id = Column(BigInteger, ForeignKey("quality_import_batches.id", ondelete="CASCADE"), nullable=False)
+    row_index = Column(Integer, nullable=False)                 # Vị trí số thứ tự dòng trong file Excel gốc
+    raw_payload = Column(JSONB, nullable=False)                 # Bản lưu thô nguyên bản của dòng dưới dạng JSON
+    normalized_payload = Column(JSONB)                          # Bản chuẩn hóa kiểu dữ liệu nghiệp vụ
+    row_status = Column(Text, default="valid")                  # Trạng thái dòng: valid (hợp lệ), warning (cảnh báo), error (lỗi nghiêm trọng)
+    error_message = Column(Text)                                # Mô tả chi tiết lỗi phát sinh để sửa tệp
+    created_at = Column(DateTime, default=datetime.utcnow)      # Thời điểm lưu trữ đệm
+
+    # Liên kết ngược tới đợt import cha
+    batch = relationship("QualityImportBatch", back_populates="rows")
+
+
+class QualityReviewTask(Base):
+    """
+    [PHASE 5] Nhiệm Vụ Phê Duyệt Báo Cáo Lâm Sàng (quality_review_tasks)
+    Bảng này lưu trữ hàng đợi phê duyệt của các đợt số liệu báo cáo gửi lên.
+    """
+    __tablename__ = "quality_review_tasks"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    target_type = Column(Text, nullable=False, default="input_batch")  # Loại đối tượng duyệt (ví dụ: input_batch)
+    target_id = Column(BigInteger, nullable=False)                     # ID của Lô báo cáo
+    status = Column(Text, default="pending")                           # Trạng thái duyệt: pending (chờ duyệt), approved (đã duyệt), rejected (bị từ chối)
+    assigned_to = Column(Text)                                         # Người được gán xử lý
+    requested_by = Column(Text, nullable=False)                        # Username người gửi duyệt
+    reviewed_by = Column(Text)                                         # Username người duyệt
+    requested_at = Column(DateTime, default=datetime.utcnow)           # Thời điểm gửi duyệt
+    reviewed_at = Column(DateTime)                                     # Thời điểm duyệt / từ chối
+    review_note = Column(Text)                                         # Ghi chú nhận xét phê duyệt / Lý do từ chối
+
+
+class QualityPeriodLock(Base):
+    """
+    [PHASE 5] Khóa Sổ Kỳ Báo Cáo Chỉ Số Chất Lượng (quality_period_locks)
+    Bảng này đóng băng dữ liệu báo cáo của khoa/phòng trong kỳ báo cáo để tránh thay đổi ngoài ý muốn.
+    """
+    __tablename__ = "quality_period_locks"
+    __table_args__ = (
+        UniqueConstraint("period_type", "report_date", "department_code", "station_code", name="uq_period_lock_scope"),
+    )
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    period_type = Column(Text, nullable=False, default="daily")         # Tần suất khóa: daily hoặc monthly
+    report_date = Column(Date, nullable=False)                          # Ngày báo cáo được khóa
+    department_code = Column(Text)                                      # Khoa phòng được khóa
+    station_code = Column(Text)                                         # Trạm vệ tinh được khóa (nếu có)
+    is_locked = Column(Boolean, default=True)                           # Đã khóa hay mở khóa
+    locked_by = Column(Text)                                            # Username người khóa
+    locked_at = Column(DateTime, default=datetime.utcnow)               # Thời điểm khóa
+    unlock_reason = Column(Text)                                        # Lý do mở khóa (bắt buộc)
+    unlocked_by = Column(Text)                                          # Username người mở khóa
+    unlocked_at = Column(DateTime)                                      # Thời điểm mở khóa
+
+
+class QualityCalculationRun(Base):
+    """
+    [PHASE 6] Nhật Ký Các Lượt Chạy Tính Toán Chỉ Số Chất Lượng (quality_calculation_runs)
+    Bảng này ghi nhận thông tin lịch sử của từng lượt kích hoạt động cơ tính toán.
+    """
+    __tablename__ = "quality_calculation_runs"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    status = Column(Text, default="pending")                           # Trạng thái: pending (chờ chạy), running (đang chạy), success (thành công), failed (thất bại), partial_success (thành công một phần)
+    period_type = Column(Text, nullable=False, default="daily")         # Tần suất tính toán: daily hoặc monthly
+    report_date = Column(Date, nullable=False)                          # Ngày số liệu được tính toán
+    department_code = Column(Text)                                      # Mã khoa phòng lọc (nếu chạy cho riêng khoa)
+    station_code = Column(Text)                                         # Mã trạm vệ tinh lọc (nếu có)
+    run_type = Column(Text, default="manual")                           # Loại chạy: manual (nhấp tay) hoặc scheduled (cronjob tự động)
+    created_by = Column(Text, nullable=False)                           # Username tài khoản kích hoạt tính toán
+    started_at = Column(DateTime, default=datetime.utcnow)              # Thời điểm bắt đầu tiến trình
+    finished_at = Column(DateTime)                                      # Thời điểm kết thúc tiến trình
+    success_count = Column(Integer, default=0)                          # Số lượng chỉ số tính toán thành công
+    error_count = Column(Integer, default=0)                            # Số lượng chỉ số bị lỗi tính toán
+    logs = Column(Text)                                                 # Logs chi tiết lỗi hoặc tiến trình của động cơ tính toán
+
+
+class QualityIndicatorResult(Base):
+    """
+    [PHASE 6] Kết Quả Tính Toán Chỉ Số Chất Lượng Lâm Sàng Chính Thức (quality_indicator_results)
+    Bảng này lưu trữ giá trị chỉ số chất lượng chính thức sau khi tổng hợp qua động cơ tính toán.
+    """
+    __tablename__ = "quality_indicator_results"
+    __table_args__ = (
+        UniqueConstraint(
+            "indicator_code", "period_type", "report_date", "department_code", "station_code",
+            name="uq_indicator_result_scope"
+        ),
+    )
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    indicator_code = Column(Text, nullable=False)                       # Mã chỉ số lâm sàng (ví dụ: CS1, CS2...)
+    period_type = Column(Text, nullable=False, default="daily")         # Chu kỳ: daily hoặc monthly
+    report_date = Column(Date, nullable=False)                          # Ngày tính toán kết quả chỉ số
+    department_code = Column(Text)                                      # Khoa phòng được tính toán
+    station_code = Column(Text)                                         # Trạm vệ tinh được tính toán (nếu có)
+    numerator_value = Column(Numeric)                                   # Giá trị tử số thô
+    denominator_value = Column(Numeric)                                 # Giá trị mẫu số thô (nếu có)
+    value = Column(Numeric)                                             # Kết quả chỉ số cuối cùng (Float/Decimal)
+    calculated_at = Column(DateTime, default=datetime.utcnow)           # Thời điểm tính toán
+    calculation_run_id = Column(BigInteger, ForeignKey("quality_calculation_runs.id")) # ID của lượt chạy tính toán tương ứng
+
+
+
+

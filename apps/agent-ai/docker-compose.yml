@@ -33,8 +33,10 @@ services:
     ports:
       - "8000:8000"
     volumes:
+      - ./backend:/app
       - ./storage:/app/storage
       - ./scripts:/app/scripts
+      - ./tests:/app/tests
     depends_on:
       - postgres
 
@@ -55,8 +57,10 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-Ttcc^115}
       - HF_HOME=${HF_HOME:-/app/storage/models}
     volumes:
+      - ./backend:/app
       - ./storage:/app/storage
       - ./scripts:/app/scripts
+      - ./tests:/app/tests
     depends_on:
       - postgres
 
@@ -66,8 +70,14 @@ services:
       dockerfile: Dockerfile
     container_name: ai_chatbot_frontend
     restart: always
+    environment:
+      - BACKEND_INTERNAL_URL=http://backend:8000
     ports:
       - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
     depends_on:
       - backend
 

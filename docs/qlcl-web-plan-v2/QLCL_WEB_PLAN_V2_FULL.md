@@ -3729,8 +3729,8 @@ reject_input_batch
 ### Backend
 
 - List period locks.
-- Lock period.
-- Unlock period.
+- Lock period (Hệ thống tự động kích hoạt khi Trưởng khoa/Reviewer phê duyệt số liệu).
+- Unlock period (Mở khóa phục vụ điều chỉnh).
 - Thêm guard vào input/import APIs nếu chưa có.
 
 ### Permission
@@ -3741,11 +3741,11 @@ reports:period_lock:lock
 reports:period_lock:unlock
 ```
 
-### Quy tắc lock
+### Quy tắc lock & Mở khóa
 
-- Nên yêu cầu tất cả batch trong kỳ/scope đã approved hoặc cancelled.
-- Không cho lock nếu còn batch submitted chưa xử lý, trừ khi `quality_admin` override.
-- Kỳ đã khóa chặn create/update/submit/confirm import.
+- **Duyệt đồng nghĩa với Khóa sổ:** Khi Trưởng khoa phê duyệt đợt số liệu (`POST /approve`), batch status tự động chuyển sang `'locked'` và sinh bản ghi `QualityPeriodLock(is_locked=True)` tương ứng.
+- **Mở khóa hoàn nháp:** Khi thực hiện mở khóa một kỳ hạn báo cáo (`POST /unlock`), hệ thống tự động đưa **tất cả** các lô số liệu con tương ứng ngược về trạng thái **Nháp (draft)** để nhân viên có thể sửa đổi và gửi duyệt lại.
+- Kỳ đã khóa chặn hoàn toàn hành động create/update/submit/confirm import.
 - Unlock bắt buộc lý do.
 
 ### Audit
@@ -3769,10 +3769,10 @@ unlock_period
 
 ### `/reports/locked-periods`
 
-- Filter date/period/department/station.
-- List lock status.
-- Lock/unlock action.
-- Unlock reason modal.
+- Ẩn form khóa sổ thủ công.
+- Hiển thị danh sách kỳ báo cáo đã khóa rộng toàn màn hình (Full width).
+- Bổ sung banner giới thiệu cơ chế tự động khóa sổ khi duyệt và mở khóa hồi nháp kỳ.
+- Nút **Mở khóa** kích hoạt Modal nhập lý do mở khóa bắt buộc phục vụ Audit Trail.
 
 ---
 
@@ -3780,14 +3780,11 @@ unlock_period
 
 ```text
 Manual input/import confirmed:
-  draft → submitted → approved → locked
+  draft → submitted → locked (auto-locked on approve)
                    ↘ rejected → draft/cancelled
-```
 
-Period lock:
-
-```text
-unlocked → locked → unlocked (with reason) → locked
+Unlock Period Lock:
+  locked → unlocked (reverts all child batches back to 'draft')
 ```
 
 ---
@@ -3795,18 +3792,18 @@ unlocked → locked → unlocked (with reason) → locked
 ## 8. Checklist nghiệm thu Phase 5
 
 ```text
-[ ] Batch submit tạo review task
-[ ] Reviewer xem task theo scope
-[ ] Approve được batch submitted
-[ ] Reject bắt buộc reason
-[ ] Data entry không tự approve nếu không có quyền đặc biệt
-[ ] Lock period được
-[ ] Kỳ đã khóa chặn sửa input/import confirm
-[ ] Unlock period yêu cầu reason
-[ ] Audit log có approve/reject/lock/unlock
-[ ] UI review hoạt động
-[ ] UI locked-periods hoạt động
-[ ] Không làm Agent-AI
+[x] Batch submit tạo review task
+[x] Reviewer xem task theo scope
+[x] Phê duyệt tự động chuyển batch sang locked và khóa sổ kỳ hạn
+[x] Reject bắt buộc reason
+[x] Data entry không tự approve nếu không có quyền đặc biệt
+[x] Mở khóa kỳ báo cáo tự động hoàn trạng thái các lô con về draft để sửa đổi
+[x] Kỳ đã khóa chặn sửa input/import confirm
+[x] Unlock period yêu cầu reason bắt buộc phục vụ thanh tra
+[x] Audit log có approve/reject/lock/unlock đầy đủ
+[x] UI review hoạt động mượt mà
+[x] UI locked-periods hoạt động toàn màn hình (không có form khóa tay)
+[x] Không làm Agent-AI
 ```
 
 ---
@@ -3923,9 +3920,10 @@ def safe_divide(numerator, denominator, default=0):
 quality_input_records
 ```
 
-Điều kiện:
+Điều kiện nạp dữ liệu:
 
-- Batch status `approved` hoặc kỳ đã `locked`.
+- **Bao gồm cả số liệu nháp:** Nạp dữ liệu từ các trạng thái hoạt động: `["draft", "submitted", "approved", "locked"]`.
+- Loại trừ hoàn toàn dữ liệu từ các lô bị từ chối `rejected` để tránh làm nhiễu kết quả.
 - Theo `report_date`, `period_type`, `department_code`, `station_code`.
 
 ### Registry
@@ -3963,9 +3961,9 @@ indicators:recalculate
 
 ### Run behavior
 
-1. Tạo `quality_calculation_runs` status `pending`.
+1. Tạo `quality_calculation_runs` status `pending` với `run_type="auto"` (hoặc `"manual"` nếu chạy tay).
 2. Chuyển `running`.
-3. Load input variables.
+3. Load input variables (bao gồm cả nháp và gửi duyệt).
 4. Run registry.
 5. Upsert vào `quality_indicator_results`.
 6. Cập nhật success/error count.
@@ -3984,28 +3982,27 @@ Route:
 
 UI:
 
-- Filter date/period/department/station/status.
-- Button Run Calculation.
-- Table runs.
-- Detail errors.
-- Link result.
+- Ẩn hoàn toàn form kích hoạt thủ công bên trái.
+- Hiển thị danh sách lịch sử lượt chạy rộng toàn màn hình (Full width).
+- Bổ sung banner giới thiệu nguyên lý tự động chạy tính toán nền khi Lưu nháp/Cập nhật/Nộp/Duyệt số liệu.
+- Nút **Xem Logs** mở Modal hiển thị thời gian thực toàn bộ nhật ký gỡ lỗi lâm sàng của động cơ Python.
 
 ---
 
 ## 9. Checklist nghiệm thu Phase 6
 
 ```text
-[ ] Có data_engine package
-[ ] Có safe_divide
-[ ] Có variable loader
-[ ] Có indicator registry
-[ ] Có calculation run API
-[ ] Có result upsert
-[ ] Có run status success/failed/partial_success
-[ ] Có audit log run_calculation
-[ ] Có UI calculation-runs
-[ ] Tính được ít nhất CS1-CS5 hoặc nhóm chỉ số MVP khả dụng
-[ ] Không làm Agent-AI
+[x] Có data_engine package hoàn chỉnh
+[x] Có safe_divide chặn lỗi chia cho 0
+[x] Có variable loader nạp cả nháp, gửi duyệt, khóa sổ (loại trừ rejected)
+[x] Có indicator registry CS1-CS10
+[x] Đăng ký API tự động chạy tính toán nền bất đồng bộ khi Lưu/Nộp/Duyệt/Mở khóa/Confirm Excel
+[x] Có result upsert không trùng dữ liệu
+[x] Có run status success/failed/partial_success
+[x] Có audit log run_calculation đầy đủ
+[x] Có UI calculation-runs toàn màn hình sang trọng
+[x] Tính toán tự động phản hồi tức thì 10 chỉ số lâm sàng MVP CS1-CS10
+[x] Không làm Agent-AI
 ```
 
 ---

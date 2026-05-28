@@ -579,3 +579,20 @@ Phase 10 chỉ cần đảm bảo:
 - Frontend AI route yêu cầu `ai_agent:use`.
 - Nếu backend AI API hiện có chưa có guard, thêm guard nhẹ hoặc proxy guard qua QLCL Web.
 - Không bắt buộc sửa RAG/LLM/embedding trong phase tích hợp đầu tiên.
+
+---
+
+## 13. Kiến trúc Tích hợp và Hợp nhất Next.js Backend (Phase 6 - Hiện tại)
+
+Để tối ưu hóa hiệu năng, đồng bộ kiểu dữ liệu TypeScript và đẩy nhanh tốc độ phản hồi UI, kiến trúc hệ thống đã được tái cấu trúc theo mô hình **Next.js-centric Gateway API**:
+
+1. **Next.js API Routes (JavaScript/TypeScript) đóng vai trò là API Gateway & Backend chính:**
+   - Đảm nhận toàn bộ các API Auth, phân quyền RBAC, kiểm tra Scopes khoa/trạm, CRUD báo cáo, hàng đợi duyệt báo cáo, khóa sổ và mở khóa kỳ báo cáo (`/apps/agent-ai/frontend/app/api/v1/...`).
+   - Kết nối trực tiếp PostgreSQL bằng Connection Pool (`pg` native queries) cho tốc độ I/O nhanh nhất.
+   - Nginx proxy (cổng 80) chuyển tiếp toàn bộ yêu cầu `/api/v1/` sang Next.js (cổng 3000).
+
+2. **Python FastAPI đóng vai trò Dedicated Microservice chuyên biệt:**
+   - Rút gọn toàn bộ các API CRUD, chỉ giữ lại cổng REST API `/api/v1/quality/calculate/run` để nhận lệnh tính toán lâm sàng CS1 - CS10 và lưu logs gỡ lỗi.
+   - Nhận yêu cầu kích hoạt tính toán nền bất đồng bộ được gửi ngầm từ Next.js qua HTTP REST API nội bộ (`http://backend:8000`), có hỗ trợ truyền kèm tham số `run_type: "auto"` hoặc `"manual"`.
+   - Các phân hệ đặc thù của Python (RAG Chat, legacy login, master data tạm thời) được Next.js tự động chuyển tiếp qua cấu hình `rewrites` trong `next.config.js` ngầm dưới nền.
+

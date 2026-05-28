@@ -95,9 +95,10 @@ def safe_divide(numerator, denominator, default=0):
 quality_input_records
 ```
 
-Điều kiện:
+Điều kiện nạp dữ liệu:
 
-- Batch status `approved` hoặc kỳ đã `locked`.
+- **Bao gồm cả số liệu nháp:** Nạp dữ liệu từ các trạng thái hoạt động: `["draft", "submitted", "approved", "locked"]`.
+- Loại trừ hoàn toàn dữ liệu từ các lô bị từ chối `rejected` để tránh làm nhiễu kết quả.
 - Theo `report_date`, `period_type`, `department_code`, `station_code`.
 
 ### Registry
@@ -135,9 +136,9 @@ indicators:recalculate
 
 ### Run behavior
 
-1. Tạo `quality_calculation_runs` status `pending`.
+1. Tạo `quality_calculation_runs` status `pending` với `run_type="auto"` (hoặc `"manual"` nếu chạy tay).
 2. Chuyển `running`.
-3. Load input variables.
+3. Load input variables (bao gồm cả nháp và gửi duyệt).
 4. Run registry.
 5. Upsert vào `quality_indicator_results`.
 6. Cập nhật success/error count.
@@ -156,28 +157,27 @@ Route:
 
 UI:
 
-- Filter date/period/department/station/status.
-- Button Run Calculation.
-- Table runs.
-- Detail errors.
-- Link result.
+- Ẩn hoàn toàn form kích hoạt thủ công bên trái.
+- Hiển thị danh sách lịch sử lượt chạy rộng toàn màn hình (Full width).
+- Bổ sung banner giới thiệu nguyên lý tự động chạy tính toán nền khi Lưu nháp/Cập nhật/Nộp/Duyệt số liệu.
+- Nút **Xem Logs** mở Modal hiển thị thời gian thực toàn bộ nhật ký gỡ lỗi lâm sàng của động cơ Python.
 
 ---
 
 ## 9. Checklist nghiệm thu Phase 6
 
 ```text
-[ ] Có data_engine package
-[ ] Có safe_divide
-[ ] Có variable loader
-[ ] Có indicator registry
-[ ] Có calculation run API
-[ ] Có result upsert
-[ ] Có run status success/failed/partial_success
-[ ] Có audit log run_calculation
-[ ] Có UI calculation-runs
-[ ] Tính được ít nhất CS1-CS5 hoặc nhóm chỉ số MVP khả dụng
-[ ] Không làm Agent-AI
+[x] Có data_engine package hoàn chỉnh
+[x] Có safe_divide chặn lỗi chia cho 0
+[x] Có variable loader nạp cả nháp, gửi duyệt, khóa sổ (loại trừ rejected)
+[x] Có indicator registry CS1-CS10
+[x] Đăng ký API tự động chạy tính toán nền bất đồng bộ khi Lưu/Nộp/Duyệt/Mở khóa/Confirm Excel
+[x] Có result upsert không trùng dữ liệu
+[x] Có run status success/failed/partial_success
+[x] Có audit log run_calculation đầy đủ
+[x] Có UI calculation-runs toàn màn hình sang trọng
+[x] Tính toán tự động phản hồi tức thì 10 chỉ số lâm sàng MVP CS1-CS10
+[x] Không làm Agent-AI
 ```
 
 ---
