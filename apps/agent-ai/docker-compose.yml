@@ -4,9 +4,9 @@ services:
     container_name: ai_chatbot_db
     restart: always
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-ai_chatbot}
-      POSTGRES_USER: ${POSTGRES_USER:-ai_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me}
+      POSTGRES_DB: ${POSTGRES_DB:-chatbot}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Ttcc^115}
     ports:
       - "5432:5432"
     volumes:
@@ -18,16 +18,17 @@ services:
       dockerfile: Dockerfile
     container_name: ai_chatbot_backend
     restart: always
+    env_file:
+      - .env.example
+      # Provides QUALITY_POSTGRES_* for QLCL Web external DB.
+      - ../../.env.example
     environment:
-      - APP_ENV=${APP_ENV}
+      - APP_ENV=${APP_ENV:-development}
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - EMBEDDING_PROVIDER=${EMBEDDING_PROVIDER}
-      - EMBEDDING_MODEL=${EMBEDDING_MODEL}
+      - POSTGRES_DB=${POSTGRES_DB:-chatbot}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-Ttcc^115}
       - HF_HOME=${HF_HOME:-/app/storage/models}
     ports:
       - "8000:8000"
@@ -43,16 +44,15 @@ services:
       dockerfile: Dockerfile.worker
     container_name: ai_chatbot_worker
     restart: always
+    env_file:
+      - .env.example
     environment:
-      - APP_ENV=${APP_ENV}
+      - APP_ENV=${APP_ENV:-development}
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - EMBEDDING_PROVIDER=${EMBEDDING_PROVIDER}
-      - EMBEDDING_MODEL=${EMBEDDING_MODEL}
+      - POSTGRES_DB=${POSTGRES_DB:-chatbot}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-Ttcc^115}
       - HF_HOME=${HF_HOME:-/app/storage/models}
     volumes:
       - ./storage:/app/storage
