@@ -2,6 +2,7 @@ from sqlalchemy import (
     BigInteger,
     Boolean,
     Column,
+    Date,
     DateTime,
     ForeignKey,
     Index,
@@ -354,3 +355,67 @@ class QualityDataQualityLog(Base):
     error_message = Column(Text)
     raw_payload = Column(JSONB)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class QualityInputBatch(Base):
+    """
+    [PHASE 3] Lô/Đợt Báo Cáo Nghiệp Vụ Chỉ Số Chất Lượng (quality_input_batches)
+    Bảng này quản lý tổng thể một đợt nhập báo cáo số liệu của một khoa/phòng ban hoặc trạm vệ tinh.
+    """
+    __tablename__ = "quality_input_batches"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    batch_code = Column(Text, unique=True, nullable=False)  # Mã lô duy nhất (Format: INP-YYYYMMDD-XXXX)
+    report_date = Column(Date, nullable=False)  # Ngày của dữ liệu báo cáo
+    period_type = Column(Text, default="daily")  # Tần suất báo cáo: daily (hàng ngày), monthly (hàng tháng)
+    department_code = Column(Text)  # Mã phòng ban báo cáo (BGD, KDH, KCCNBV, QLCL...)
+    station_code = Column(Text)  # Mã trạm vệ tinh (nếu có, ví dụ thuộc KCCNBV)
+    source_type = Column(Text, default="web_form")  # Nguồn nhập: web_form (nhập web thủ công) hoặc import (Excel)
+    status = Column(Text, default="draft")  # Trạng thái: draft (nháp), submitted (chờ duyệt), approved (đã duyệt), rejected (bị từ chối), locked (khóa sổ)
+    created_by = Column(Text)  # Username tài khoản nhập liệu tạo lô
+    submitted_by = Column(Text)  # Username tài khoản nộp báo cáo
+    approved_by = Column(Text)  # Username tài khoản duyệt báo cáo
+    rejected_by = Column(Text)  # Username tài khoản từ chối báo cáo
+    locked_by = Column(Text)  # Username tài khoản thực hiện khóa kỳ sổ
+    created_at = Column(DateTime, default=datetime.utcnow)  # Thời điểm tạo lô nháp
+    submitted_at = Column(DateTime)  # Thời điểm nộp báo cáo
+    approved_at = Column(DateTime)  # Thời điểm phê duyệt báo cáo
+    rejected_at = Column(DateTime)  # Thời điểm từ chối báo cáo
+    locked_at = Column(DateTime)  # Thời điểm khóa đợt báo cáo này
+    note = Column(Text)  # Ghi chú tổng hợp của ca trực/đợt báo cáo
+    reject_reason = Column(Text)  # Lý do từ chối phê duyệt (bắt buộc khi trạng thái là rejected)
+
+    # Thiết lập mối quan hệ 1-N tới chi tiết số liệu báo cáo
+    records = relationship("QualityInputRecord", back_populates="batch", cascade="all, delete-orphan")
+
+
+class QualityInputRecord(Base):
+    """
+    [PHASE 3] Chi Tiết Bản Ghi Số Liệu Biến Số Nghiệp Vụ (quality_input_records)
+    Bảng này lưu trữ giá trị cụ thể của từng biến số hoặc chỉ số nghiệp vụ thô được điền trong form.
+    """
+    __tablename__ = "quality_input_records"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    batch_id = Column(BigInteger, ForeignKey("quality_input_batches.id", ondelete="CASCADE"))  # Liên kết tới Lô báo cáo cha
+    report_date = Column(Date, nullable=False)  # Ngày của số liệu (đồng bộ với Batch cha)
+    period_type = Column(Text, default="daily")  # Tần suất báo cáo: daily hoặc monthly
+    department_code = Column(Text)  # Mã phòng ban báo cáo
+    station_code = Column(Text)  # Mã trạm vệ tinh (nếu có)
+    variable_code = Column(Text)  # Mã biến số nghiệp vụ thô (ví dụ: A1, A2, B1...)
+    indicator_code = Column(Text)  # Mã chỉ số lâm sàng (nếu có nhập trực tiếp)
+    value = Column(Numeric)  # Giá trị số thực (Float/Decimal) nhập vào
+    text_value = Column(Text)  # Giá trị dạng văn bản (nếu biến số yêu cầu chữ)
+    unit = Column(Text)  # Đơn vị tính (cuộc, trường hợp, phút...) đồng bộ từ Catalog lúc tạo
+    note = Column(Text)  # Ghi chú riêng cho dòng số liệu này
+    row_status = Column(Text, default="valid")  # Trạng thái dòng số liệu: valid (hợp lệ), warning (cảnh báo), error (lỗi chặn nộp)
+    error_code = Column(Text)  # Mã lỗi nếu có vi phạm luật nghiệp vụ (ví dụ: OUT_OF_BOUNDS_MIN)
+    error_message = Column(Text)  # Nội dung thông báo lỗi cụ thể để sửa
+    created_by = Column(Text)  # Username tài khoản điền số liệu dòng này
+    updated_by = Column(Text)  # Username tài khoản cập nhật số liệu lần gần nhất
+    created_at = Column(DateTime, default=datetime.utcnow)  # Thời điểm tạo bản ghi
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)  # Thời điểm cập nhật
+
+    # Quan hệ liên kết ngược tới Lô báo cáo cha
+    batch = relationship("QualityInputBatch", back_populates="records")
+
