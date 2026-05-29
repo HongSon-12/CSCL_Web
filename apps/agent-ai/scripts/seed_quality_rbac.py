@@ -29,6 +29,10 @@ from models import (  # noqa: E402
     QualityPeriodLock,
     QualityCalculationRun,
     QualityIndicatorResult,
+    QualityKccnbv,
+    QualityChiSo,
+    QualityCallCenterData,
+    QualityHandleByArea,
 )
 from quality_seed_data import (  # noqa: E402
     QUALITY_DEPARTMENTS,
@@ -73,6 +77,10 @@ QUALITY_TABLES = [
     QualityPeriodLock.__table__,
     QualityCalculationRun.__table__,
     QualityIndicatorResult.__table__,
+    QualityKccnbv.__table__,
+    QualityChiSo.__table__,
+    QualityCallCenterData.__table__,
+    QualityHandleByArea.__table__,
 ]
 
 

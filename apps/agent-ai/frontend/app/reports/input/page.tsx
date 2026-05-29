@@ -155,7 +155,8 @@ export default function ReportsInputPage() {
           const deptsData = await deptsRes.json()
           const statsData = await statsRes.json()
 
-          setDepartments(deptsData.data || [])
+          const filteredDepts = (deptsData.data || []).filter((d: any) => !['KDH', 'QLCL', 'BGD'].includes(d.code))
+          setDepartments(filteredDepts)
           setStations(statsData.data || [])
 
           // Tự động chọn khoa phòng đầu tiên khớp với phạm vi Scope bộ phận được gán của người dùng
@@ -165,8 +166,8 @@ export default function ReportsInputPage() {
 
           if (userDepts.length > 0) {
             setSelectedDept(userDepts[0])
-          } else if (deptsData.data?.length > 0) {
-            setSelectedDept(deptsData.data[0].code)
+          } else if (filteredDepts.length > 0) {
+            setSelectedDept(filteredDepts[0].code)
           }
         }
       } catch {
@@ -601,7 +602,7 @@ export default function ReportsInputPage() {
                 <Spinner color="brand.500" />
               </Flex>
             ) : (
-              <SimpleGrid columns={{ base: 1, md: 3, lg: 5 }} spacing={4}>
+              <SimpleGrid columns={{ base: 1, md: 3, lg: 3 }} spacing={6}>
                 <FormControl>
                   <FormLabel fontSize="sm" fontWeight="700">Ngày báo cáo</FormLabel>
                   <Input
@@ -642,37 +643,6 @@ export default function ReportsInputPage() {
                   </Select>
                 </FormControl>
 
-                <FormControl
-                  isDisabled={selectedDept !== 'KCCNBV'}
-                  opacity={selectedDept !== 'KCCNBV' ? 0.5 : 1}
-                >
-                  <FormLabel fontSize="sm" fontWeight="700">Trạm vệ tinh</FormLabel>
-                  <Select
-                    borderRadius="md"
-                    value={selectedStation}
-                    onChange={(e) => setSelectedStation(e.target.value)}
-                    placeholder="Tất cả các trạm"
-                  >
-                    {stations.map((stat) => (
-                      <option key={stat.id} value={stat.code}>
-                        {stat.name}
-                      </option>
-                    ))}
-                  </Select>
-                </FormControl>
-
-                <FormControl>
-                  <FormLabel fontSize="sm" fontWeight="700">Nhóm biến số</FormLabel>
-                  <Select
-                    borderRadius="md"
-                    value={selectedGroup}
-                    placeholder="Tất cả các nhóm"
-                    onChange={(e) => setSelectedGroup(e.target.value)}
-                  >
-                    <option value="A">Nhóm A</option>
-                    <option value="B">Nhóm B</option>
-                  </Select>
-                </FormControl>
               </SimpleGrid>
             )}
           </CardBody>
@@ -776,72 +746,65 @@ export default function ReportsInputPage() {
                         <Tr>
                           <Th w="80px">Mã</Th>
                           <Th minW="220px">Tên chỉ số / Biến số</Th>
-                          <Th w="120px">Đơn vị</Th>
-                          <Th w="200px">Giá trị số liệu</Th>
-                          <Th minW="200px">Ghi chú dòng</Th>
+                          <Th w="80px">Đơn vị</Th>
+                          <Th w="100px">Trung tâm</Th>
+                          <Th w="100px">Cần Giờ</Th>
+                          <Th w="100px">Quận 8</Th>
+                          <Th w="100px">Ung Bướu</Th>
+                          <Th w="100px">Thủ Đức</Th>
+                          <Th w="100px">Bình Trưng</Th>
                         </Tr>
                       </Thead>
                       <Tbody>
-                        {template.fields.map((field) => {
-                          const isErr = !!validationErrors[field.variable_code]
-                          const recordVal = formValues[field.variable_code] || {
-                            value: '',
-                            note: '',
-                          }
+                        {(() => {
+                          const groups: Record<string, { label: string, unit: string, required: boolean, fields: Record<string, any> }> = {}
+                          template.fields.forEach(field => {
+                            const match = field.variable_code.match(/^([a-zA-Z]+\d+)(cg|q8|ub|td|bt)?$/i)
+                            const base = match ? match[1].toLowerCase() : field.variable_code.toLowerCase()
+                            const suffix = match ? (match[2] || '').toLowerCase() : ''
+                            if (!groups[base]) {
+                              groups[base] = { label: field.label, unit: field.unit, required: field.required, fields: {} }
+                            }
+                            if (suffix === '') groups[base].label = field.label
+                            groups[base].fields[suffix] = field
+                          })
 
-                          return (
-                            <Tr key={field.variable_code}>
-                              <Td fontWeight="bold" color="gray.600">
-                                {field.variable_code}
-                              </Td>
-                              <Td>
-                                <Text fontWeight="600" color="gray.800">
-                                  {field.label}
-                                </Text>
-                                {field.required && (
-                                  <Text as="span" color="red.500" fontSize="xs" ml={1}>
-                                    (Bắt buộc *)
-                                  </Text>
-                                )}
-                              </Td>
-                              <Td color="gray.500">{field.unit || '-'}</Td>
-                              <Td>
-                                <FormControl isInvalid={isErr}>
-                                  <Input
-                                    borderRadius="md"
-                                    type="number"
-                                    isDisabled={isReadOnly}
-                                    placeholder={field.required ? 'Nhập số liệu *' : 'Không có'}
-                                    value={recordVal.value}
-                                    onChange={(e) =>
-                                      handleValueChange(
-                                        field.variable_code,
-                                        e.target.value
-                                      )
-                                    }
-                                  />
-                                  <FormErrorMessage fontSize="xs">
-                                    {validationErrors[field.variable_code]}
-                                  </FormErrorMessage>
-                                </FormControl>
-                              </Td>
-                              <Td>
-                                <Input
-                                  borderRadius="md"
-                                  isDisabled={isReadOnly}
-                                  placeholder="Ghi chú thêm (nếu có)..."
-                                  value={recordVal.note}
-                                  onChange={(e) =>
-                                    handleNoteChange(
-                                      field.variable_code,
-                                      e.target.value
-                                    )
-                                  }
-                                />
-                              </Td>
-                            </Tr>
-                          )
-                        })}
+                          const suffixes = ['', 'cg', 'q8', 'ub', 'td', 'bt']
+                          
+                          return Object.keys(groups).map((base) => {
+                            const group = groups[base]
+                            return (
+                              <Tr key={base}>
+                                <Td fontWeight="bold" color="gray.600">{base.toUpperCase()}</Td>
+                                <Td>
+                                  <Text fontWeight="600" color="gray.800">{group.label}</Text>
+                                  {group.required && <Text as="span" color="red.500" fontSize="xs" ml={1}>(*)</Text>}
+                                </Td>
+                                <Td color="gray.500">{group.unit || '-'}</Td>
+                                {suffixes.map(suf => {
+                                  const f = group.fields[suf]
+                                  if (!f) return <Td key={suf} bg="gray.50"></Td>
+                                  const isErr = !!validationErrors[f.variable_code]
+                                  const recordVal = formValues[f.variable_code] || { value: '', note: '' }
+                                  return (
+                                    <Td key={suf}>
+                                      <FormControl isInvalid={isErr}>
+                                        <Input
+                                          borderRadius="md"
+                                          type="number"
+                                          isDisabled={isReadOnly}
+                                          placeholder={f.required ? '*' : '-'}
+                                          value={recordVal.value}
+                                          onChange={(e) => handleValueChange(f.variable_code, e.target.value)}
+                                        />
+                                      </FormControl>
+                                    </Td>
+                                  )
+                                })}
+                              </Tr>
+                            )
+                          })
+                        })()}
                       </Tbody>
                     </Table>
                   </Box>

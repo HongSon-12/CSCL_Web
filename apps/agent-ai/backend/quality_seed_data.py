@@ -210,36 +210,83 @@ QUALITY_ROLES = {
 QUALITY_INDICATORS = [
     {
         "code": f"CS{index}",
-        "name": f"Indicator CS{index}",
+        "name": f"Chỉ số lâm sàng CS{index}" if index <= 26 else f"Chỉ số khoa phòng CS{index}",
         "group_code": "MVP",
         "formula_python_key": f"cs{index}",
         "frequency": "daily",
-        "source_type": "mixed",
-        "owner_department_code": "QLCL",
+        "source_type": "calculated" if index <= 26 else "manual",
+        "owner_department_code": "KDH" if index <= 10 else ("KCCNBV" if index <= 26 else "QLCL"),
     }
-    for index in range(1, 11)
+    for index in range(1, 54)
 ]
 
-QUALITY_VARIABLES = [
-    {
-        "variable_code": f"A{index}",
-        "name": f"Variable A{index}",
-        "group_code": "A",
-        "data_type": "number",
+# Danh sách các biến số chất lượng nhập thủ công khoa phòng cs24-cs53
+QUALITY_VARIABLES = []
+
+# Định nghĩa các chỉ số từ cs24 đến cs53
+variable_definitions = {
+    "cs24": ("CS24: Trung bình thời gian tại hiện trường (phút)", "QLCL", "number"),
+    "cs24cg": ("CS24: TB thời gian tại hiện trường - Cần Giờ", "QLCL", "number"),
+    "cs24q8": ("CS24: TB thời gian tại hiện trường - Quận 8", "QLCL", "number"),
+    "cs24td": ("CS24: TB thời gian tại hiện trường - Thủ Đức", "QLCL", "number"),
+    "cs24ub": ("CS24: TB thời gian tại hiện trường - Ung Bướu", "QLCL", "number"),
+    "cs25": ("CS25: Trung bình thời gian chuyển đến bệnh viện (phút)", "QLCL", "number"),
+    "cs25cg": ("CS25: TB thời gian chuyển đến BV - Cần Giờ", "QLCL", "number"),
+    "cs25q8": ("CS25: TB thời gian chuyển đến BV - Quận 8", "QLCL", "number"),
+    "cs25td": ("CS25: TB thời gian chuyển đến BV - Thủ Đức", "QLCL", "number"),
+    "cs25ub": ("CS25: TB thời gian chuyển đến BV - Ung Bướu", "QLCL", "number"),
+    "cs28": ("CS28: Tỷ lệ thiết bị y tế được bảo trì (%)", "QLCL", "number"),
+    "cs29": ("CS29: Tỷ lệ hoàn tất kiểm định thiết bị (%)", "QLCL", "number"),
+    "cs30": ("CS30: Tỷ lệ cung ứng đủ số lượng VTYT (%)", "QLCL", "number"),
+    "cs31": ("CS31: Tỷ lệ tai nạn thương tích vật sắc nhọn (%)", "QLCL", "number"),
+    "cs32": ("CS32: Tỷ lệ tuân thủ vệ sinh tay (%)", "QLCL", "number"),
+    "cs33": ("CS33: Sự hài lòng chung về Trung tâm (%)", "QLCL", "number"),
+    "cs34": ("CS34: Điểm tiêu chí cải cách hành chính (A/B/C/D)", "QLCL", "text"),
+    "cs35": ("CS35: Điểm tiêu chí cơ sở xanh-sạch-đẹp (%)", "QLCL", "number"),
+    "cs36": ("CS36: Tỷ lệ sự cố ngoài y khoa nghiêm trọng (%)", "QLCL", "number"),
+    "cs37": ("CS37: Tỷ lệ xe cứu thương kết nối định vị (%)", "QLCL", "number"),
+    "cs38": ("CS38: Hiệu suất sử dụng xe cứu thương (%)", "QLCL", "number"),
+    "cs39": ("CS39: Tỷ lệ nhân viên tuyển dụng theo đề án (%)", "QLCL", "number"),
+    "cs40": ("CS40: Số sự cố y khoa bắt buộc báo cáo", "QLCL", "number"),
+    "cs41": ("CS41: Tỷ lệ hài lòng của người dân (%)", "QLCL", "number"),
+    "cs42": ("CS42: Điểm tiêu chí chất lượng Trung tâm", "QLCL", "number"),
+    "cs43": ("CS43: Điểm tiêu chí chất lượng Trạm vệ tinh", "QLCL", "number"),
+    "cs44": ("CS44: Tổng số Trạm vệ tinh Cấp cứu 115", "QLCL", "number"),
+    "cs45": ("CS45: Tỷ lệ Trạm vệ tinh kết nối điều hành (%)", "QLCL", "number"),
+    "cs46": ("CS46: Tỷ lệ nhân viên được đào tạo liên tục (%)", "QLCL", "number"),
+    "cs47": ("CS47: Số công tác phục vụ sự kiện chính trị", "QLCL", "number"),
+    "cs48": ("CS48: Số cơ sở y tế được hỗ trợ chuyên môn", "QLCL", "number"),
+    "cs49": ("CS49: Số lớp đào tạo liên tục cho NVYT", "QLCL", "number"),
+    "cs50": ("CS50: Số lớp đào tạo cho cộng đồng", "QLCL", "number"),
+    
+    # Financial metrics cs51 to cs53 with satellite suffixes
+    "cs51": ("CS51: Tổng số biên lai/phiên trực - Trung tâm", "QLCL", "number"),
+    "cs51cg": ("CS51: Tổng số biên lai/phiên trực - Cần Giờ", "QLCL", "number"),
+    "cs51q8": ("CS51: Tổng số biên lai/phiên trực - Quận 8", "QLCL", "number"),
+    "cs51td": ("CS51: Tổng số biên lai/phiên trực - Thủ Đức", "QLCL", "number"),
+    "cs51ub": ("CS51: Tổng số biên lai/phiên trực - Ung Bướu", "QLCL", "number"),
+    
+    "cs52": ("CS52: TB số tiền/Biên lai - Trung tâm", "QLCL", "number"),
+    "cs52cg": ("CS52: TB số tiền/Biên lai - Cần Giờ", "QLCL", "number"),
+    "cs52q8": ("CS52: TB số tiền/Biên lai - Quận 8", "QLCL", "number"),
+    "cs52td": ("CS52: TB số tiền/Biên lai - Thủ Đức", "QLCL", "number"),
+    "cs52ub": ("CS52: TB số tiền/Biên lai - Ung Bướu", "QLCL", "number"),
+    
+    "cs53": ("CS53: Số tiền thu được/phiên trực - Trung tâm", "QLCL", "number"),
+    "cs53cg": ("CS53: Số tiền thu được/phiên trực - Cần Giờ", "QLCL", "number"),
+    "cs53q8": ("CS53: Số tiền thu được/phiên trực - Quận 8", "QLCL", "number"),
+    "cs53td": ("CS53: Số tiền thu được/phiên trực - Thủ Đức", "QLCL", "number"),
+    "cs53ub": ("CS53: Số tiền thu được/phiên trực - Ung Bướu", "QLCL", "number"),
+}
+
+for code, (name, dept, dtype) in variable_definitions.items():
+    QUALITY_VARIABLES.append({
+        "variable_code": code,
+        "name": name,
+        "group_code": "CL" if "cs2" in code or "cs3" in code or "cs4" in code else "TC",
+        "data_type": dtype,
         "source_type": "manual",
-        "required": True,
-        "min_value": 0,
-    }
-    for index in range(1, 6)
-] + [
-    {
-        "variable_code": f"B{index}",
-        "name": f"Variable B{index}",
-        "group_code": "B",
-        "data_type": "number",
-        "source_type": "manual",
-        "required": False,
-        "min_value": 0,
-    }
-    for index in range(1, 6)
-]
+        "required": True if code in ["cs24", "cs25", "cs28", "cs32", "cs33", "cs41", "cs51", "cs52", "cs53"] else False,
+        "min_value": 0 if dtype == "number" else None,
+    })
+

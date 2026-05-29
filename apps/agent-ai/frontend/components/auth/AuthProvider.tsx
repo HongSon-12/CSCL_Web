@@ -20,7 +20,7 @@ export type CurrentUser = {
   is_active: boolean
   roles: string[]
   permissions: string[]
-  scopes: string[]
+  scopes: { scope_type: string; scope_code: string }[]
 }
 
 type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated'

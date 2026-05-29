@@ -71,7 +71,7 @@ type ImportRow = {
 }
 
 export default function ReportsImportPage() {
-  const { user, token } = useAuth()
+  const { currentUser, token } = useAuth()
   const toast = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -468,30 +468,51 @@ export default function ReportsImportPage() {
               </Card>
             </GridItem>
 
-            {/* Bảng hướng dẫn cấu trúc */}
+            {/* Điều kiện chấp thuận dữ liệu */}
             <GridItem>
-              <Card borderRadius="2xl" shadow="md" border="1px" borderColor="gray.100" h="full">
-                <CardBody>
-                  <Heading size="xs" textTransform="uppercase" color="gray.500" mb={4}>
-                    Cấu trúc tệp mẫu
+              <Card borderRadius="2xl" shadow="md" border="1px" borderColor="gray.100" h="full" bg="white">
+                <CardBody p={5}>
+                  <Heading size="xs" textTransform="uppercase" color="teal.600" letterSpacing="wider" mb={4} fontWeight="700">
+                    Điều kiện chấp thuận dữ liệu
                   </Heading>
                   <VStack align="stretch" spacing={3} fontSize="xs" color="gray.600">
-                    <Text>Biểu mẫu Excel hợp lệ cần chứa ít nhất các cột tiêu đề sau:</Text>
-                    <Box p={3} bg="gray.50" borderRadius="lg" border="1px" borderColor="gray.100">
-                      <Text fontWeight="bold">1. Ngày báo cáo</Text>
-                      <Text color="gray.500">(Định dạng: YYYY-MM-DD)</Text>
+                    <Text mb={1} color="gray.500" fontWeight="500">
+                      Tệp tải lên cần đáp ứng đầy đủ các điều kiện kiểm tra nghiệp vụ nghiêm ngặt sau:
+                    </Text>
+                    
+                    <Box p={3} bg="teal.50" borderRadius="xl" border="1px" borderColor="teal.100">
+                      <Text fontWeight="bold" color="teal.900">1. Nhận diện tệp bệnh án (KCCNBV)</Text>
+                      <Text color="teal.700" mt={0.5}>
+                        Phải có cột tiêu đề <strong>"SỐ BỆNH ÁN"</strong> trong 5 dòng đầu tiên để kích hoạt luồng xử lý 41 cột lâm sàng thô.
+                      </Text>
                     </Box>
-                    <Box p={3} bg="gray.50" borderRadius="lg" border="1px" borderColor="gray.100">
-                      <Text fontWeight="bold">2. Mã khoa/trạm</Text>
-                      <Text color="gray.500">(Ví dụ: QLCL, KDH, CC_01)</Text>
+
+                    <Box p={3} bg="gray.50" borderRadius="xl" border="1px" borderColor="gray.200">
+                      <Text fontWeight="bold" color="gray.800">2. Khóa chính & Ghi đè (Upsert)</Text>
+                      <Text color="gray.500" mt={0.5}>
+                        Trường <strong>Số bệnh án</strong> bắt buộc phải có giá trị, dùng để cập nhật đè dữ liệu nếu trùng lặp ca cũ.
+                      </Text>
                     </Box>
-                    <Box p={3} bg="gray.50" borderRadius="lg" border="1px" borderColor="gray.100">
-                      <Text fontWeight="bold">3. Mã biến số</Text>
-                      <Text color="gray.500">(Ví dụ: A1, A2, B1...)</Text>
+
+                    <Box p={3} bg="gray.50" borderRadius="xl" border="1px" borderColor="gray.200">
+                      <Text fontWeight="bold" color="gray.800">3. Chuẩn hóa ngày tháng</Text>
+                      <Text color="gray.500" mt={0.5}>
+                        Trường <strong>Ngày</strong> phải đúng định dạng ngày tháng hợp lệ (<code>YYYY-MM-DD</code> hoặc <code>DD/MM/YYYY</code>).
+                      </Text>
                     </Box>
-                    <Box p={3} bg="gray.50" borderRadius="lg" border="1px" borderColor="gray.100">
-                      <Text fontWeight="bold">4. Giá trị</Text>
-                      <Text color="gray.500">(Dạng số hoặc chữ thô)</Text>
+
+                    <Box p={3} bg="gray.50" borderRadius="xl" border="1px" borderColor="gray.200">
+                      <Text fontWeight="bold" color="gray.800">4. Ẩn danh bảo mật y tế</Text>
+                      <Text color="gray.500" mt={0.5}>
+                        Họ tên bệnh nhân tự động viết tắt in hoa không dấu (ví dụ: <code>Nguyễn Văn Á</code> → <code>NVA</code>) khi lưu trữ.
+                      </Text>
+                    </Box>
+
+                    <Box p={3} bg="gray.50" borderRadius="xl" border="1px" borderColor="gray.200">
+                      <Text fontWeight="bold" color="gray.800">5. Đối chiếu danh mục</Text>
+                      <Text color="gray.500" mt={0.5}>
+                        Mã khoa/trạm và mã biến (nếu dùng tệp chuẩn) bắt buộc phải khớp chính xác danh mục hệ thống.
+                      </Text>
                     </Box>
                   </VStack>
                 </CardBody>
@@ -789,7 +810,7 @@ export default function ReportsImportPage() {
                   </Thead>
                   <Tbody>
                     {historyBatches.map((b) => (
-                      <Tr key={b.id} hover={{ bg: 'gray.50' }}>
+                      <Tr key={b.id} _hover={{ bg: 'gray.50' }}>
                         <Td fontWeight="bold" color="teal.600">{b.batch_code}</Td>
                         <Td isTruncated maxW="200px">{b.file_name}</Td>
                         <Td textAlign="center">{b.total_rows}</Td>

@@ -74,7 +74,7 @@ export async function getUserSession(username: string): Promise<UserSession | nu
       idList
     );
     const qualityRoleNames = new Set(qualityRolesRes.rows.map((r: any) => r.role_code));
-    const allRoles = Array.from(new Set([...legacyRoleNames, ...qualityRoleNames]));
+    const allRoles = Array.from(legacyRoleNames).concat(Array.from(qualityRoleNames));
 
     // 4. Tổng hợp quyền (Permissions)
     const permissions = new Set<string>();

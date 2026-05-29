@@ -227,6 +227,7 @@ class QualityIndicatorVariable(Base):
     name = Column(Text, nullable=False)
     description = Column(Text)
     group_code = Column(Text)
+    department_code = Column(Text)
     data_type = Column(Text, default="number")
     unit = Column(Text)
     source_type = Column(Text, default="manual")
@@ -554,6 +555,156 @@ class QualityIndicatorResult(Base):
     value = Column(Numeric)                                             # Kết quả chỉ số cuối cùng (Float/Decimal)
     calculated_at = Column(DateTime, default=datetime.utcnow)           # Thời điểm tính toán
     calculation_run_id = Column(BigInteger, ForeignKey("quality_calculation_runs.id")) # ID của lượt chạy tính toán tương ứng
+
+
+class QualityKccnbv(Base):
+    """
+    [PHASE 4] Bảng Dữ Liệu Chi Tiết Cấp Cứu Ngoài Bệnh Viện (kccnbv)
+    """
+    __tablename__ = "kccnbv"
+
+    so_benh_an = Column(BigInteger, primary_key=True)  # Số bệnh án cấp cứu (Khóa chính)
+    stt = Column(Integer)
+    ngay = Column(Date, nullable=False)
+    xu_ly_boi = Column(Text)
+    tram_duoc_thong_bao = Column(Text)
+    tram_xu_ly = Column(Text)
+    ho_ten_benh_nhan = Column(Text)
+    gioi_tinh = Column(Text)
+    sinh_nam = Column(Integer)
+    dia_chi_cap_cuu = Column(Text)
+    goi_cap_cuu = Column(Text)  # hh:nn
+    thoi_gian_tao_phieu_tiep_nhan = Column(Text)
+    thoi_gian_nhan_dien_thoai = Column(Text)
+    thoi_gian_xuat_xe = Column(Text)
+    thoi_gian_den_hien_truong = Column(Text)
+    thoi_gian_den_benh_vien = Column(Text)
+    thoi_gian_hoan_tat = Column(Text)
+    thoi_luong_xu_ly = Column(Integer)
+    thoi_luong_dieu_phoi = Column(Integer)
+    thoi_luong_xuat_xe = Column(Integer)
+    thoi_luong_den_hien_truong = Column(Integer)
+    thoi_luong_den_benh_vien = Column(Integer)
+    thoi_luong_hoan_tat_ban_giao = Column(Integer)
+    ly_do_goi_den_cap_cuu = Column(Text)
+    huyet_ap = Column(Text)
+    mach = Column(Text)
+    nhiet_do = Column(Text)
+    nhip_tho = Column(Text)
+    spo2 = Column(Text)
+    ly_do_cap_cuu = Column(Text)
+    ma_benh = Column(Text)
+    chan_doan_theo_icd = Column(Text)
+    chan_doan_so_bo = Column(Text)
+    benh_vien_nhan = Column(Text)
+    xu_tri = Column(Text)
+    ghi_chu_sau_xu_tri = Column(Text)
+    huyet_ap_2 = Column(Text)
+    mach_2 = Column(Text)
+    nhiet_do_2 = Column(Text)
+    nhip_tho_2 = Column(Text)
+    spo2_2 = Column(Text)
+
+
+class QualityChiSo(Base):
+    """
+    [PHASE 3] Bảng Chỉ Số Chất Lượng Khoa Phòng (chi_so)
+    """
+    __tablename__ = "chi_so"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    time = Column(DateTime, default=datetime.utcnow)
+    by = Column(Text)
+    phone = Column(Text)
+    datereport = Column(Date, nullable=False)
+    room = Column(Text)
+
+    # CS24 to CS53 columns (CS24, CS25, CS28-CS53)
+    cs24 = Column(Numeric)
+    cs24cg = Column(Numeric)
+    cs24q8 = Column(Numeric)
+    cs24td = Column(Numeric)
+    cs24ub = Column(Numeric)
+    cs25 = Column(Numeric)
+    cs25cg = Column(Numeric)
+    cs25q8 = Column(Numeric)
+    cs25td = Column(Numeric)
+    cs25ub = Column(Numeric)
+    cs28 = Column(Numeric)
+    cs29 = Column(Numeric)
+    cs30 = Column(Numeric)
+    cs31 = Column(Numeric)
+    cs32 = Column(Numeric)
+    cs33 = Column(Numeric)
+    cs34 = Column(Text)  # cs34 is Text character grades
+    cs35 = Column(Numeric)
+    cs36 = Column(Numeric)
+    cs37 = Column(Numeric)
+    cs38 = Column(Numeric)
+    cs39 = Column(Numeric)
+    cs40 = Column(Numeric)
+    cs41 = Column(Numeric)
+    cs42 = Column(Numeric)
+    cs43 = Column(Numeric)
+    cs44 = Column(Numeric)
+    cs45 = Column(Numeric)
+    cs46 = Column(Numeric)
+    cs47 = Column(Numeric)
+    cs48 = Column(Numeric)
+    cs49 = Column(Numeric)
+    cs50 = Column(Numeric)
+    cs51 = Column(Numeric)
+    cs51cg = Column(Numeric)
+    cs51q8 = Column(Numeric)
+    cs51td = Column(Numeric)
+    cs51ub = Column(Numeric)
+    cs52 = Column(Numeric)
+    cs52cg = Column(Numeric)
+    cs52q8 = Column(Numeric)
+    cs52td = Column(Numeric)
+    cs52ub = Column(Numeric)
+    cs53 = Column(Numeric)
+    cs53cg = Column(Numeric)
+    cs53q8 = Column(Numeric)
+    cs53td = Column(Numeric)
+    cs53ub = Column(Numeric)
+
+
+class QualityCallCenterData(Base):
+    """
+    [PHASE 6] Bảng Dữ Liệu Cuộc Gọi Tổng Đài (callcenterdata)
+    """
+    __tablename__ = "callcenterdata"
+
+    id = Column(BigInteger, primary_key=True)
+    totalcalls = Column(Integer)
+    callsreceived = Column(Integer)
+    callswithcontent = Column(Integer)
+    callswithemergencysignstotal = Column(Integer)
+    callswithoutemergencysigns = Column(Integer)
+    averagecallsperday = Column(Numeric)
+    reportfordate = Column(Date)
+    lastupdatedat = Column(DateTime)
+
+
+class QualityHandleByArea(Base):
+    """
+    [PHASE 6] Bảng Điều Phối Cấp Cứu Theo Địa Bàn (handlebyarea)
+    """
+    __tablename__ = "handlebyarea"
+
+    id = Column(BigInteger, primary_key=True)
+    receivedbysatellite = Column(Integer)
+    transfertosatellite = Column(Integer)
+    nolongerneededcalls = Column(Integer)
+    nolongerneededtrip = Column(Integer)
+    othertransfer = Column(Integer)
+    transfertohospitalpatient = Column(Integer)
+    transfertoservice = Column(Integer)
+    tripwithpatient = Column(Integer)
+    diedpatient = Column(Integer)
+    byarea = Column(Text)
+    date_created = Column(DateTime)
 
 
 
